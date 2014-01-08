@@ -1,4 +1,30 @@
 body {
-    font-family: georgia, serif;
+    font-family: "Times New Roman", "Times", serif;
+    font-size: 15px;
     -webkit-font-smoothing: antialiased;
+}
+
+.wrapper {
+    width: 500px;
+    margin: 20px auto;
+}
+
+#input, #output {
+    width: inherit;
+}
+
+#input {
+    font: inherit;
+    -webkit-font-smoothing: inherit;
+    height: 50px;
+    padding-top: 10px;
+    border: none;
+    border-top: 1px solid #cccccc;
+    resize: none;
+    position: fixed;
+    bottom: 0;
+}
+
+#input:focus {
+    outline: none;
 }

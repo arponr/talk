@@ -3,6 +3,7 @@ var input, output, websocket;
 function showMessage(m) {
     var p = document.createElement("p");
     p.innerHTML = m;
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, p]);
     output.appendChild(p);
 }
 

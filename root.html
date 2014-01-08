@@ -4,10 +4,21 @@
     <meta charset="utf-8"/>
     <link href="static/style.css" rel="stylesheet" type="text/css">
     <script type="text/javascript" src="static/j.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      "HTML-CSS": {scale: 95},
+      });
+    </script>
+    <script type="text/javascript"
+            src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
   </head>
 
   <body>
-    <input id="input" type="text">
-    <div id="output"></div>
+    <div class="wrapper">
+      <textarea id="input"></textarea>
+      <div id="output"></div>
+    </div>
   </body>
 </html>
