@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"code.google.com/p/go.net/websocket"
 )
@@ -16,7 +17,7 @@ func main() {
 	http.HandleFunc("/", rootHandler)
 	http.Handle("/socket", websocket.Handler(socketHandler))
 	http.Handle("/static/", http.FileServer(http.Dir(".")))
-	err := http.ListenAndServe(addr, nil)
+	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
