@@ -1,0 +1,16 @@
+{
+	"ImportPath": "github.com/arponr/talk",
+	"GoVersion": "go1.2",
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/go.net/websocket",
+			"Comment": "null-110",
+			"Rev": "2b669bbfb7baae43e63e0cbe3ebb83c9f9ebb3e5"
+		},
+		{
+			"ImportPath": "github.com/russross/blackfriday",
+			"Comment": "v1.1-52-g5405274",
+			"Rev": "5405274d9994556c49bed724889558c8de335ffe"
+		}
+	]
+}

@@ -33,7 +33,7 @@ function init() {
 
     output = document.getElementById("output");
 
-    websocket = new WebSocket("ws://localhost:4000/socket");
+    websocket = new WebSocket("ws://localhost:8080/socket");
     websocket.onmessage = onMessage;
     websocket.onclose = onClose;
 }

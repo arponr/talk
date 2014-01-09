@@ -15,7 +15,7 @@ const addr = "localhost:4000"
 func main() {
 	http.HandleFunc("/", rootHandler)
 	http.Handle("/socket", websocket.Handler(socketHandler))
-	http.Handle("/static/", http.FileServer(http.Dir("./")))
+	http.Handle("/static/", http.FileServer(http.Dir(".")))
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {
 		log.Fatal(err)
