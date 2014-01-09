@@ -58,17 +58,52 @@ func match(u io.ReadWriteCloser) {
 func talk(u, v io.ReadWriteCloser) {
 	fmt.Fprintln(u, "Found one!")
 	fmt.Fprintln(v, "Found one!")
-	errch := make(chan error, 1)
-	go send(u, v, errch)
-	go send(v, u, errch)
-	if err := <-errch; err != nil {
+	errc := make(chan error, 1)
+	go send(u, v, errc)
+	go send(v, u, errc)
+	if err := <-errc; err != nil {
 		log.Println(err)
 	}
 	u.Close()
 	v.Close()
 }
 
-func send(t io.Writer, f io.Reader, errch chan<- error) {
-	_, err := io.Copy(t, f)
-	errch <- err
+// modified io.Copy
+func send(dst io.Writer, src io.ReadWriter, errc chan<- error) {
+	var err error
+	buf := make([]byte, 32*1024)
+	for {
+		nr, er := src.Read(buf)
+		if nr > 0 {
+			md := markdown(buf[0:nr])
+
+			nw, ew := src.Write(md)
+			if ew != nil {
+				err = ew
+				break
+			}
+			if nw != len(md) {
+				err = io.ErrShortWrite
+				break
+			}
+
+			nw, ew = dst.Write(md)
+			if ew != nil {
+				err = ew
+				break
+			}
+			if nw != len(md) {
+				err = io.ErrShortWrite
+				break
+			}
+		}
+		if er == io.EOF {
+			break
+		}
+		if er != nil {
+			err = er
+			break
+		}
+	}
+	errc <- err
 }

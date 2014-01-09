@@ -19,7 +19,6 @@ function sendMessage() {
     var m = input.value;
     input.value = "";
     websocket.send(m);
-    showMessage(m);
 }
 
 function onKey(e) {

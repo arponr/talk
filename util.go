@@ -19,7 +19,7 @@ func replace(vals [][]byte) func([]byte) []byte {
 	}
 }
 
-func markdown(input []byte) interface{} {
+func markdown(input []byte) []byte {
 	matches := censor.FindAll(input, -1)
 	tex := make([][]byte, len(matches))
 	for i, m := range matches {
