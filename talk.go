@@ -11,8 +11,6 @@ import (
 	"code.google.com/p/go.net/websocket"
 )
 
-const addr = "localhost:4000"
-
 func main() {
 	http.HandleFunc("/", rootHandler)
 	http.Handle("/socket", websocket.Handler(socketHandler))
@@ -26,7 +24,7 @@ func main() {
 var rootTemplate = template.Must(template.ParseFiles("root.html"))
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	rootTemplate.Execute(w, addr)
+	rootTemplate.Execute(w, nil)
 }
 
 type socket struct {

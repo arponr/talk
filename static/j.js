@@ -33,7 +33,8 @@ function init() {
 
     output = document.getElementById("output");
 
-    websocket = new WebSocket("ws://gotalk.herokuapp.com/socket");
+    var host = location.origin.replace(/^http/, 'ws')
+    websocket = new WebSocket(host);
     websocket.onmessage = onMessage;
     websocket.onclose = onClose;
 }
