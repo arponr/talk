@@ -34,7 +34,7 @@ function init() {
     output = document.getElementById("output");
 
     var host = location.origin.replace(/^http/, 'ws')
-    websocket = new WebSocket(host);
+    websocket = new WebSocket(host + '/socket');
     websocket.onmessage = onMessage;
     websocket.onclose = onClose;
 }
