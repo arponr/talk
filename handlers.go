@@ -9,7 +9,7 @@ import (
 )
 
 type Context struct {
-	Session   *sessions.Session
+	Sess      *sessions.Session
 	UserId    int
 	Username  string
 	Password  string
@@ -30,31 +30,32 @@ func handler(v view) http.HandlerFunc {
 
 func contextHandler(v contextView) http.HandlerFunc {
 	return handler(func(w http.ResponseWriter, r *http.Request) error {
-		s, _ := store.Get(r, "gotalk")
-		userId, ok := s.Values["user"].(int)
+		sess, _ := store.Get(r, "gotalk")
+		userId, ok := sess.Values["user"].(int)
 		if !ok {
-			return v(w, r, &Context{Session: s, UserId: -1})
+			return v(w, r, &Context{Sess: sess, UserId: -1})
 		}
 		var username, password, firstName, lastName string
-		err := db.QueryRow("SELECT username, password, first_name, last_name FROM users WHERE user_id = $1", userId).Scan(&username, &password, &firstName, &lastName)
+		sql := "SELECT username, password, first_name, last_name FROM users WHERE user_id = $1"
+		err := db.QueryRow(sql, userId).Scan(&username, &password, &firstName, &lastName)
 		if err != nil {
 			return err
 		}
-		return v(w, r, &Context{s, userId, username, password, firstName, lastName})
+		return v(w, r, &Context{sess, userId, username, password, firstName, lastName})
 	})
 }
 
 func userHandler(v contextView) http.HandlerFunc {
 	return contextHandler(func(w http.ResponseWriter, r *http.Request, c *Context) error {
 		if c.UserId < 0 {
-			return loginTemplate.Execute(w, nil)
+			return render(w, "login", nil)
 		}
 		return v(w, r, c)
 	})
 }
 
 func root(w http.ResponseWriter, r *http.Request, c *Context) error {
-	return rootTemplate.Execute(w, nil)
+	return render(w, "root", nil)
 }
 
 func login(w http.ResponseWriter, r *http.Request, c *Context) error {
@@ -62,18 +63,17 @@ func login(w http.ResponseWriter, r *http.Request, c *Context) error {
 	password := r.FormValue("password")
 	var userId int
 	var hash string
-	err := db.QueryRow("SELECT user_id, password FROM users WHERE username = $1", username).Scan(&userId, &hash)
-	if err != nil {
+	sql := "SELECT user_id, password FROM users WHERE username = $1"
+	if err := db.QueryRow(sql, username).Scan(&userId, &hash); err != nil {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return nil
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	if err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return nil
 	}
-	c.Session.Values["user"] = userId
-	if err = c.Session.Save(r, w); err != nil {
+	c.Sess.Values["user"] = userId
+	if err := c.Sess.Save(r, w); err != nil {
 		return err
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -89,25 +89,22 @@ func register(w http.ResponseWriter, r *http.Request, c *Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(1)
-	_, err = db.Exec("INSERT INTO users (username, password, first_name, last_name) VALUES ($1, $2, $3, $4)", username, string(hash), firstName, lastName)
-	if err != nil {
+	sql := "INSERT INTO users (username, password, first_name, last_name) " +
+		"VALUES ($1, $2, $3, $4)"
+	if _, err := db.Exec(sql, username, string(hash), firstName, lastName); err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return nil
 	}
-	fmt.Println(2)
 	var userId int
-	err = db.QueryRow("SELECT user_id FROM users WHERE username = $1", username).Scan(&userId)
-	if err != nil {
+	sql = "SELECT user_id FROM users WHERE username = $1"
+	if err := db.QueryRow(sql, username).Scan(&userId); err != nil {
 		return err
 	}
-	fmt.Println(3)
-	c.Session.Values["user"] = userId
-	if err = c.Session.Save(r, w); err != nil {
+	c.Sess.Values["user"] = userId
+	if err := c.Sess.Save(r, w); err != nil {
 		return err
 	}
-	fmt.Println(4)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return nil
 }

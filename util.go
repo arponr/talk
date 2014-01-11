@@ -1,6 +1,8 @@
 package main
 
 import (
+	"html/template"
+	"net/http"
 	"regexp"
 
 	"github.com/russross/blackfriday"
@@ -30,4 +32,18 @@ func markdown(input []byte) []byte {
 	}
 	output := blackfriday.MarkdownCommon(input)
 	return uncensor.ReplaceAllFunc(output, replace(tex))
+}
+
+func buildTemplate(files ...string) *template.Template {
+	files = append(files, "html/base.html")
+	return template.Must(template.New("").ParseFiles(files...))
+}
+
+var templates = map[string]*template.Template{
+	"root":  buildTemplate("html/root.html"),
+	"login": buildTemplate("html/login.html"),
+}
+
+func render(w http.ResponseWriter, tmpl string, data interface{}) error {
+	return templates[tmpl].ExecuteTemplate(w, "base.html", data)
 }

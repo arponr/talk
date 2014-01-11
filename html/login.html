@@ -1,0 +1,15 @@
+{{define "content"}}
+<form class="login" action="/login" method="POST">
+  <input type="text" name="username" class="field" placeholder="username">
+  <input type="text" name="password" class="field" placeholder="password">
+  <input class="submit" type="submit" value="login">
+</form>
+
+<form class="login" action="/register" method="POST">
+  <input type="text" name="first_name" class="field" placeholder="first name">
+  <input type="text" name="last_name" class="field" placeholder="last name">
+  <input type="text" name="username" class="field" placeholder="username">
+  <input type="text" name="password" class="field" placeholder="password">
+  <input class="submit" type="submit" value="register">
+</form>
+{{end}}

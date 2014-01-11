@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -16,13 +15,7 @@ import (
 var db *sql.DB
 var store sessions.Store
 
-var (
-	rootTemplate  = template.Must(template.ParseFiles("root.html"))
-	loginTemplate = template.Must(template.ParseFiles("login.html"))
-)
-
 func main() {
-	// url := "postgres://localhost:5432/testdb?sslmode=disable"
 	var err error
 	db, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
