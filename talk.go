@@ -2,30 +2,11 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"io"
 	"log"
-	"net/http"
-	"os"
 
 	"code.google.com/p/go.net/websocket"
 )
-
-func main() {
-	http.HandleFunc("/", rootHandler)
-	http.Handle("/socket", websocket.Handler(socketHandler))
-	http.Handle("/static/", http.FileServer(http.Dir(".")))
-	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-var rootTemplate = template.Must(template.ParseFiles("root.html"))
-
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	rootTemplate.Execute(w, nil)
-}
 
 type socket struct {
 	io.ReadWriter
