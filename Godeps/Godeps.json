@@ -3,9 +3,35 @@
 	"GoVersion": "go1.2",
 	"Deps": [
 		{
+			"ImportPath": "code.google.com/p/go.crypto/bcrypt",
+			"Comment": "null-187",
+			"Rev": "ebfe91cdc0348163deedb0e75d680c9305e4f1ff"
+		},
+		{
+			"ImportPath": "code.google.com/p/go.crypto/blowfish",
+			"Comment": "null-187",
+			"Rev": "ebfe91cdc0348163deedb0e75d680c9305e4f1ff"
+		},
+		{
 			"ImportPath": "code.google.com/p/go.net/websocket",
 			"Comment": "null-110",
 			"Rev": "2b669bbfb7baae43e63e0cbe3ebb83c9f9ebb3e5"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "a08edd30ad9e104612741163dc087a613829a23c"
+		},
+		{
+			"ImportPath": "github.com/gorilla/securecookie",
+			"Rev": "972f32923fd3555b7f0ea39acdc4e3d4d5412ee8"
+		},
+		{
+			"ImportPath": "github.com/gorilla/sessions",
+			"Rev": "481304761212af180bac73d15bf3f02d6584f801"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Rev": "1833e4c0260ac002be5a6383e1eb76a89f6a626d"
 		},
 		{
 			"ImportPath": "github.com/russross/blackfriday",
