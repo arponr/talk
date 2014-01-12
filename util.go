@@ -10,14 +10,17 @@ import (
 
 var (
 	censor   = regexp.MustCompile(`\$\$[^\$]+\$\$|\$[^\$]+\$`)
-	uncensor = regexp.MustCompile(`\$+`)
+	uncensor = regexp.MustCompile(`\${3,}`)
 )
 
 func replace(vals [][]byte) func([]byte) []byte {
 	i := -1
 	return func(b []byte) []byte {
 		i++
-		return vals[i]
+		if i < len(vals) {
+			return vals[i]
+		}
+		return b
 	}
 }
 

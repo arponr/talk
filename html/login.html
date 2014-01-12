@@ -1,15 +1,23 @@
 {{define "content"}}
-<form class="login" action="/login" method="POST">
-  <input type="text" name="username" class="field" placeholder="username">
-  <input type="text" name="password" class="field" placeholder="password">
-  <input class="submit" type="submit" value="login">
-</form>
+<div class="login_wrapper">
+  <header class="title">
+    <div class="site_name">Arrow</div>
+    <div class="site_desc">Internet chat as God intended</div>
+  </header>
 
-<form class="login" action="/register" method="POST">
-  <input type="text" name="first_name" class="field" placeholder="first name">
-  <input type="text" name="last_name" class="field" placeholder="last name">
-  <input type="text" name="username" class="field" placeholder="username">
-  <input type="text" name="password" class="field" placeholder="password">
-  <input class="submit" type="submit" value="register">
-</form>
+  <form class="login left" action="/login" method="POST">
+    <input type="text" name="username" class="input" placeholder="username" autocomplete="off">
+    <input type="password" name="password" class="input" placeholder="password" autocomplete="off">
+    <input type="submit" class="submit" value="login">
+  </form>
+
+  <form class="login" action="/register" method="POST">
+    <input type="text" name="first_name" class="input" placeholder="first name" autocomplete="off">
+    <input type="text" name="last_name" class="input" placeholder="last name" autocomplete="off">
+    <input type="text" name="username" class="input" placeholder="username" autocomplete="off">
+    <input type="password" name="password" class="input" placeholder="password" autocomplete="off">
+    <input type="password" name="password_again" class="input" placeholder="retype password" autocomplete="off">
+    <input type="submit" class="submit" value="register">
+  </form>
+</div>
 {{end}}
