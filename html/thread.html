@@ -1,0 +1,10 @@
+{{define "content"}}
+<div class="wrapper">
+  <textarea class="input" id="input"></textarea>
+  <div id="output">
+    {{range .}}
+    <p>{{. | safe}}</p>
+    {{end}}
+  </div>
+</div>
+{{end}}

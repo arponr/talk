@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"code.google.com/p/go.net/websocket"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	_ "github.com/lib/pq"
@@ -21,15 +20,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	store = sessions.NewCookieStore(
 		securecookie.GenerateRandomKey(32), securecookie.GenerateRandomKey(32))
 
-	http.HandleFunc("/", userHandler(root))
+	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {})
-	http.HandleFunc("/login", contextHandler(login))
-	http.HandleFunc("/register", contextHandler(register))
-	http.Handle("/socket", websocket.Handler(socketHandler))
+	http.HandleFunc("/login", loginHandler)
+	http.HandleFunc("/register", registerHandler)
+	http.Handle("/newthread", newThreadHandler)
+	http.Handle("/thread/", threadHandler)
+	http.Handle("/socket/", socketHandler)
 	http.Handle("/static/", http.FileServer(http.Dir(".")))
 
 	err = http.ListenAndServe(":"+os.Getenv("PORT"), nil)

@@ -33,8 +33,8 @@ function init() {
 
     output = document.getElementById("output");
 
-    var host = location.origin.replace(/^http/, 'ws')
-    websocket = new WebSocket(host + '/socket');
+    var url = location.href.replace(/^http/, 'ws').replace('thread', 'socket')
+    websocket = new WebSocket(url);
     websocket.onmessage = onMessage;
     websocket.onclose = onClose;
 }

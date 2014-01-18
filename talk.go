@@ -1,89 +1,116 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
+	"net/http"
+	"strconv"
+	"sync"
 
 	"code.google.com/p/go.net/websocket"
 )
 
-type socket struct {
+type connection struct {
 	io.ReadWriter
-	done chan bool
+	user *user
 }
 
-func (s socket) Close() error {
-	s.done <- true
-	return nil
-}
+type thread map[*connection]bool
 
-func socketHandler(ws *websocket.Conn) {
-	s := socket{ws, make(chan bool)}
-	go match(s)
-	<-s.done
-}
+var threads = struct {
+	sync.RWMutex
+	m map[int]thread
+}{m: make(map[int]thread)}
 
-var partner = make(chan io.ReadWriteCloser)
-
-func match(u io.ReadWriteCloser) {
-	fmt.Fprint(u, "Waiting for a partner...")
-	select {
-	case partner <- u:
-	case v := <-partner:
-		talk(u, v)
-	}
-}
-
-func talk(u, v io.ReadWriteCloser) {
-	fmt.Fprintln(u, "Found one!")
-	fmt.Fprintln(v, "Found one!")
-	errc := make(chan error, 1)
-	go send(u, v, errc)
-	go send(v, u, errc)
-	if err := <-errc; err != nil {
-		log.Println(err)
-	}
-	u.Close()
-	v.Close()
-}
-
-// modified io.Copy
-func send(dst io.Writer, src io.ReadWriter, errc chan<- error) {
-	var err error
+func send(threadId int, src *connection) error {
 	buf := make([]byte, 32*1024)
 	for {
 		nr, er := src.Read(buf)
 		if nr > 0 {
 			md := markdown(buf[0:nr])
-
-			nw, ew := src.Write(md)
-			if ew != nil {
-				err = ew
-				break
+			sql := "INSERT INTO messages (author, body, thread) VALUES ($1, $2, $3)"
+			if _, ew := db.Exec(sql, src.user.id, md, threadId); ew != nil {
+				return ew
 			}
-			if nw != len(md) {
-				err = io.ErrShortWrite
-				break
-			}
-
-			nw, ew = dst.Write(md)
-			if ew != nil {
-				err = ew
-				break
-			}
-			if nw != len(md) {
-				err = io.ErrShortWrite
-				break
+			threads.RLock()
+			t := threads.m[threadId]
+			threads.RUnlock()
+			for dst, _ := range t {
+				dst.Write(md)
 			}
 		}
 		if er == io.EOF {
-			break
+			return nil
 		}
 		if er != nil {
-			err = er
-			break
+			return er
 		}
 	}
-	errc <- err
 }
+
+var (
+	socketHandler = websocket.Handler(
+		func(s *websocket.Conn) {
+			r := s.Request()
+			u, err := getUser(r)
+			if err != nil {
+				// serve error
+			}
+			c := &connection{s, u}
+			threadId, err := strconv.Atoi(r.URL.Path[len("/socket/"):])
+			if err != nil {
+				// bad URL
+			}
+			threads.Lock()
+			threads.m[threadId][c] = true
+			threads.Unlock()
+			if err := send(threadId, c); err != nil {
+				log.Println(err)
+			}
+			threads.Lock()
+			delete(threads.m[threadId], c)
+			threads.Unlock()
+		})
+
+	threadHandler = userHandler(
+		func(w http.ResponseWriter, r *http.Request, u *user) error {
+			id, err := strconv.Atoi(r.URL.Path[len("/thread/"):])
+			sql := "SELECT body FROM messages WHERE thread = $1"
+			rows, err := db.Query(sql, id)
+			if err != nil {
+				return err
+			}
+			var msgs []string
+			for rows.Next() {
+				var msg string
+				err = rows.Scan(&msg)
+				if err != nil {
+					return err
+				}
+				msgs = append(msgs, msg)
+			}
+			if err = rows.Err(); err != nil {
+				return err
+			}
+			return render(w, "thread", msgs)
+		})
+
+	newThreadHandler = userHandler(
+		func(w http.ResponseWriter, r *http.Request, u *user) error {
+			switch r.Method {
+			case "GET":
+				return render(w, "newthread", nil)
+			case "POST":
+				name := r.FormValue("name")
+				var threadId int
+				sql := "INSERT INTO threads (thread_name) VALUES ($1) RETURNING thread_id"
+				if err := db.QueryRow(sql, name).Scan(&threadId); err != nil {
+					return err
+				}
+				threads.Lock()
+				threads.m[threadId] = make(map[*connection]bool)
+				threads.Unlock()
+			}
+			return nil
+		})
+)

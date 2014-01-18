@@ -37,14 +37,20 @@ func markdown(input []byte) []byte {
 	return uncensor.ReplaceAllFunc(output, replace(tex))
 }
 
+func safe(s string) interface{} { return template.HTML(s) }
+
 func buildTemplate(files ...string) *template.Template {
 	files = append(files, "html/base.html")
-	return template.Must(template.New("").ParseFiles(files...))
+	return template.Must(template.New("").Funcs(template.FuncMap{
+		"safe": safe,
+	}).ParseFiles(files...))
 }
 
 var templates = map[string]*template.Template{
-	"root":  buildTemplate("html/root.html"),
-	"login": buildTemplate("html/login.html"),
+	"root":      buildTemplate("html/root.html"),
+	"login":     buildTemplate("html/login.html"),
+	"thread":    buildTemplate("html/thread.html"),
+	"newthread": buildTemplate("html/newthread.html"),
 }
 
 func render(w http.ResponseWriter, tmpl string, data interface{}) error {
