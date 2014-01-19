@@ -36,7 +36,7 @@ type userView func(http.ResponseWriter, *http.Request, *user) error
 func handler(v view) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := v(w, r); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			serveError(w, err)
 		}
 	}
 }
@@ -80,16 +80,19 @@ var (
 			if err := sess.Save(r, w); err != nil {
 				return err
 			}
-			http.Redirect(w, r, "/thread/1", http.StatusSeeOther)
+			http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
 			return nil
 		})
 
 	registerHandler = handler(
 		func(w http.ResponseWriter, r *http.Request) error {
-			firstName := r.FormValue("first_name")
-			lastName := r.FormValue("last_name")
 			username := r.FormValue("username")
 			password := r.FormValue("password")
+			passwordAgain := r.FormValue("password_again")
+			if password != passwordAgain {
+				http.Redirect(w, r, "/", http.StatusSeeOther)
+				return nil
+			}
 			passhash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 			if err != nil {
 				return err

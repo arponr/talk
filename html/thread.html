@@ -1,10 +1,15 @@
 {{define "content"}}
 <div class="wrapper">
-  <textarea class="input" id="input"></textarea>
-  <div id="output">
+  <div id="msgs">
     {{range .}}
-    <p>{{. | safe}}</p>
+    <div class="msg">
+      <div class="username">{{.Username}}:</div>
+      <div class="body">
+        {{.Body | safe}}
+      </div>
+    </div>
     {{end}}
   </div>
+  <textarea class="input" id="input"></textarea>
 </div>
 {{end}}

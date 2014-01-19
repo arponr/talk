@@ -20,6 +20,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if err = initCache(); err != nil {
+		log.Fatal(err)
+	}
 	store = sessions.NewCookieStore(
 		securecookie.GenerateRandomKey(32), securecookie.GenerateRandomKey(32))
 

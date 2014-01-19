@@ -24,7 +24,7 @@ func replace(vals [][]byte) func([]byte) []byte {
 	}
 }
 
-func markdown(input []byte) []byte {
+func markdown(input []byte) string {
 	matches := censor.FindAll(input, -1)
 	tex := make([][]byte, len(matches))
 	for i, m := range matches {
@@ -34,7 +34,7 @@ func markdown(input []byte) []byte {
 		}
 	}
 	output := blackfriday.MarkdownCommon(input)
-	return uncensor.ReplaceAllFunc(output, replace(tex))
+	return string(uncensor.ReplaceAllFunc(output, replace(tex)))
 }
 
 func safe(s string) interface{} { return template.HTML(s) }
@@ -55,4 +55,8 @@ var templates = map[string]*template.Template{
 
 func render(w http.ResponseWriter, tmpl string, data interface{}) error {
 	return templates[tmpl].ExecuteTemplate(w, "base.html", data)
+}
+
+func serveError(w http.ResponseWriter, err error) {
+	http.Error(w, err.Error(), http.StatusInternalServerError)
 }

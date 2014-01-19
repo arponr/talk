@@ -1,8 +1,8 @@
 package main
 
 import (
+	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 	"sync"
@@ -17,10 +17,31 @@ type connection struct {
 
 type thread map[*connection]bool
 
-var threads = struct {
+var cache = struct {
 	sync.RWMutex
 	m map[int]thread
 }{m: make(map[int]thread)}
+
+func initCache() error {
+	rows, err := db.Query("SELECT thread_id FROM threads")
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var threadId int
+		err = rows.Scan(&threadId)
+		if err != nil {
+			return err
+		}
+		cache.m[threadId] = make(thread)
+	}
+	return rows.Err()
+}
+
+type message struct {
+	Username string
+	Body     string
+}
 
 func send(threadId int, src *connection) error {
 	buf := make([]byte, 32*1024)
@@ -28,15 +49,17 @@ func send(threadId int, src *connection) error {
 		nr, er := src.Read(buf)
 		if nr > 0 {
 			md := markdown(buf[0:nr])
-			sql := "INSERT INTO messages (author, body, thread) VALUES ($1, $2, $3)"
-			if _, ew := db.Exec(sql, src.user.id, md, threadId); ew != nil {
+			msg := message{src.user.username, md}
+			sql := "INSERT INTO messages (username, body, thread_id) VALUES ($1, $2, $3)"
+			if _, ew := db.Exec(sql, msg.Username, msg.Body, threadId); ew != nil {
 				return ew
 			}
-			threads.RLock()
-			t := threads.m[threadId]
-			threads.RUnlock()
+			cache.RLock()
+			t := cache.m[threadId]
+			cache.RUnlock()
 			for dst, _ := range t {
-				dst.Write(md)
+				enc := json.NewEncoder(dst)
+				enc.Encode(&msg)
 			}
 		}
 		if er == io.EOF {
@@ -53,37 +76,41 @@ var (
 		func(s *websocket.Conn) {
 			r := s.Request()
 			u, err := getUser(r)
-			if err != nil {
-				// serve error
+			if err != nil || u.id < 0 {
+				s.Write([]byte("Your login is invalid"))
+				return
 			}
 			c := &connection{s, u}
 			threadId, err := strconv.Atoi(r.URL.Path[len("/socket/"):])
 			if err != nil {
-				// bad URL
+				s.Write([]byte("You're trying to write to an invalid thread url"))
 			}
-			threads.Lock()
-			threads.m[threadId][c] = true
-			threads.Unlock()
+			cache.Lock()
+			cache.m[threadId][c] = true
+			cache.Unlock()
 			if err := send(threadId, c); err != nil {
-				log.Println(err)
+				s.Write([]byte("Your connection closed with an error:" + err.Error()))
 			}
-			threads.Lock()
-			delete(threads.m[threadId], c)
-			threads.Unlock()
+			cache.Lock()
+			delete(cache.m[threadId], c)
+			cache.Unlock()
 		})
 
 	threadHandler = userHandler(
 		func(w http.ResponseWriter, r *http.Request, u *user) error {
-			id, err := strconv.Atoi(r.URL.Path[len("/thread/"):])
-			sql := "SELECT body FROM messages WHERE thread = $1"
-			rows, err := db.Query(sql, id)
+			threadId, err := strconv.Atoi(r.URL.Path[len("/thread/"):])
 			if err != nil {
 				return err
 			}
-			var msgs []string
+			sql := "SELECT username, body FROM messages WHERE thread_id = $1"
+			rows, err := db.Query(sql, threadId)
+			if err != nil {
+				return err
+			}
+			var msgs []message
 			for rows.Next() {
-				var msg string
-				err = rows.Scan(&msg)
+				var msg message
+				err = rows.Scan(&msg.Username, &msg.Body)
 				if err != nil {
 					return err
 				}
@@ -107,9 +134,10 @@ var (
 				if err := db.QueryRow(sql, name).Scan(&threadId); err != nil {
 					return err
 				}
-				threads.Lock()
-				threads.m[threadId] = make(map[*connection]bool)
-				threads.Unlock()
+				cache.Lock()
+				cache.m[threadId] = make(thread)
+				cache.Unlock()
+				http.Redirect(w, r, "/thread/"+strconv.Itoa(threadId), http.StatusSeeOther)
 			}
 			return nil
 		})

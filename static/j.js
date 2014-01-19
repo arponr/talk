@@ -1,18 +1,23 @@
 var input, output, websocket;
 
 function showMessage(m) {
-    var p = document.createElement("p");
-    p.innerHTML = m;
-    MathJax.Hub.Queue(["Typeset", MathJax.Hub, p]);
-    output.appendChild(p);
+    var msg = document.createElement("div");
+    msg.className = "msg";
+    var username = document.createElement("div");
+    username.className = "username";
+    username.innerHTML = m.Username + ":";
+    msg.appendChild(username);
+    var body = document.createElement("div");
+    body.className = "body";
+    body.innerHTML = m.Body;
+    msg.appendChild(body);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, body]);
+    output.appendChild(msg);
+    scroll();
 }
 
 function onMessage(e) {
-    showMessage(e.data);
-}
-
-function onClose() {
-    showMessage("Connection closed.");
+    showMessage(JSON.parse(e.data));
 }
 
 function sendMessage() {
@@ -22,21 +27,25 @@ function sendMessage() {
 }
 
 function onKey(e) {
-    if (e.keyCode == 13) {
+    if (e.shiftKey && e.keyCode == 13) {
         sendMessage();
     }
 }
 
-function init() {
-    input = document.getElementById("input");
-    input.addEventListener("keyup", onKey, false);
-
-    output = document.getElementById("output");
-
-    var url = location.href.replace(/^http/, 'ws').replace('thread', 'socket')
-    websocket = new WebSocket(url);
-    websocket.onmessage = onMessage;
-    websocket.onclose = onClose;
+function scroll() {
+    output.scrollTop = output.scrollHeight;
 }
 
-window.addEventListener("load", init, false);
+function init() {
+    input = document.getElementById("input");
+    input.onkeyup = onKey;
+
+    output = document.getElementById("msgs");
+    MathJax.Hub.Register.StartupHook("End", scroll);
+
+    var url = location.href.replace(/^http/, "ws").replace("thread", "socket")
+    websocket = new WebSocket(url);
+    websocket.onmessage = onMessage;
+}
+
+window.onload = init
