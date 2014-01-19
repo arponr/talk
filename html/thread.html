@@ -1,15 +1,18 @@
 {{define "content"}}
-<div class="wrapper">
-  <div id="msgs">
-    {{range .}}
-    <div class="msg">
-      <div class="username">{{.Username}}:</div>
-      <div class="body">
-        {{.Body | safe}}
+<div class="thread_wrapper">
+  <div class="threads">Something</div>
+  <div class="thread">
+    <div id="msgs" class="msgs">
+      {{range .}}
+      <div class="msg">
+        <div class="username">{{.Username}}:</div>
+        <div class="body">
+          {{.Body | safe}}
+        </div>
       </div>
+      {{end}}
     </div>
-    {{end}}
+    <textarea class="input" id="input"></textarea>
   </div>
-  <textarea class="input" id="input"></textarea>
 </div>
 {{end}}
