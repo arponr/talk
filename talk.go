@@ -15,12 +15,12 @@ type connection struct {
 	user *user
 }
 
-type thread map[*connection]bool
+type connSet map[*connection]bool
 
 var cache = struct {
 	sync.RWMutex
-	m map[int]thread
-}{m: make(map[int]thread)}
+	m map[int]connSet
+}{m: make(map[int]connSet)}
 
 func initCache() error {
 	rows, err := db.Query("SELECT thread_id FROM threads")
@@ -33,14 +33,9 @@ func initCache() error {
 		if err != nil {
 			return err
 		}
-		cache.m[threadId] = make(thread)
+		cache.m[threadId] = make(connSet)
 	}
 	return rows.Err()
-}
-
-type message struct {
-	Username string
-	Body     string
 }
 
 func send(threadId int, src *connection) error {
@@ -102,24 +97,19 @@ var (
 			if err != nil {
 				return err
 			}
-			sql := "SELECT username, body FROM messages WHERE thread_id = $1"
-			rows, err := db.Query(sql, threadId)
+			var data struct {
+				Threads  []thread
+				Messages []message
+			}
+			data.Threads, err = userThreads(u.id)
 			if err != nil {
 				return err
 			}
-			var msgs []message
-			for rows.Next() {
-				var msg message
-				err = rows.Scan(&msg.Username, &msg.Body)
-				if err != nil {
-					return err
-				}
-				msgs = append(msgs, msg)
-			}
-			if err = rows.Err(); err != nil {
+			data.Messages, err = threadMessages(threadId)
+			if err != nil {
 				return err
 			}
-			return render(w, "thread", msgs)
+			return render(w, "thread", data)
 		})
 
 	newThreadHandler = userHandler(
@@ -135,7 +125,7 @@ var (
 					return err
 				}
 				cache.Lock()
-				cache.m[threadId] = make(thread)
+				cache.m[threadId] = make(connSet)
 				cache.Unlock()
 				http.Redirect(w, r, "/thread/"+strconv.Itoa(threadId), http.StatusSeeOther)
 			}

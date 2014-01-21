@@ -7,11 +7,9 @@ import (
 )
 
 type user struct {
-	id        int
-	username  string
-	passhash  []byte
-	firstName string
-	lastName  string
+	id       int
+	username string
+	passhash []byte
 }
 
 func getUser(r *http.Request) (*user, error) {
@@ -20,14 +18,14 @@ func getUser(r *http.Request) (*user, error) {
 	if !ok {
 		return &user{id: -1}, nil
 	}
-	var username, firstName, lastName string
+	var username string
 	var passhash []byte
-	sql := "SELECT username, passhash, first_name, last_name FROM users WHERE user_id = $1"
-	err := db.QueryRow(sql, id).Scan(&username, &passhash, &firstName, &lastName)
+	sql := "SELECT username, passhash FROM users WHERE user_id = $1"
+	err := db.QueryRow(sql, id).Scan(&username, &passhash)
 	if err != nil {
 		return nil, err
 	}
-	return &user{id, username, passhash, firstName, lastName}, nil
+	return &user{id, username, passhash}, nil
 }
 
 type view func(http.ResponseWriter, *http.Request) error
@@ -80,7 +78,7 @@ var (
 			if err := sess.Save(r, w); err != nil {
 				return err
 			}
-			http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
+			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return nil
 		})
 
@@ -89,7 +87,7 @@ var (
 			username := r.FormValue("username")
 			password := r.FormValue("password")
 			passwordAgain := r.FormValue("password_again")
-			if password != passwordAgain {
+			if password != passwordAgain || len(password) < 6 {
 				http.Redirect(w, r, "/", http.StatusSeeOther)
 				return nil
 			}
@@ -98,10 +96,8 @@ var (
 				return err
 			}
 			var id int
-			sql := "INSERT INTO users (username, passhash, first_name, last_name) " +
-				"VALUES ($1, $2, $3, $4) RETURNING user_id"
-			if err = db.QueryRow(
-				sql, username, passhash, firstName, lastName).Scan(&id); err != nil {
+			sql := "INSERT INTO users (username, passhash) VALUES ($1, $2) RETURNING user_id"
+			if err = db.QueryRow(sql, username, passhash).Scan(&id); err != nil {
 				http.Redirect(w, r, "/", http.StatusSeeOther)
 				return nil
 			}

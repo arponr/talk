@@ -4,6 +4,7 @@
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
+    box-sizing: border-box;
 }
 
 html, body {
@@ -12,7 +13,7 @@ html, body {
 
 body {
     font-family: "Times New Roman", "Times", serif;
-    font-size: 15px;
+    font-size: 14px;
     color: #333333;
 }
 
@@ -22,8 +23,17 @@ body {
     border: none;
 }
 
-.input:focus, .submit:focus {
+.input:focus, .submit:focus, .button:focus {
     outline: none;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 /* ------ login ------ */
@@ -79,11 +89,6 @@ body {
 .login_wrapper .submit:hover {
     color: #333333;
     border: 1px solid #999999;
-    -webkit-box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    -moz-box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    position: relative;
-    z-index: 1;
 }
 
 .login_wrapper .submit:active {
@@ -96,57 +101,212 @@ body {
 
 .thread_wrapper {
     margin: 0 auto;
-    width: 900px;
+    width: 800px;
     height: 100%;
     border-left: 1px solid #cccccc;
     border-right: 1px solid #cccccc;
     background: #ffffff;
+    box-sizing: content-box;
 }
 
 .threads {
-    width: 300px;
+    width: 280px;
     height: 100%;
     border-right: 1px solid #cccccc;
     float: left;
-    box-sizing: border-box;
+}
+
+.threads .control, .threads .item {
+    font-family: "Arial", sans-serif;
+    border-bottom: 1px solid #cccccc;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.threads .control {
+    font-size: 13px;
+    font-weight: bold;
+    height: 40px;
+    padding: 10px;
+}
+
+.threads .item {
+    height: 80px;
+    padding: 20px 10px;
+}
+
+.threads .name {
+    margin-bottom: 5px;
+}
+
+.threads .users {
+    font-size: 13px;
+    color: #666666;
+}
+
+.icon {
+    height: 20px;
+    width: 25px;
+    float: left;
+    padding: 5px;
+}
+
+.lines {
+    height: 2px;
+    width: 12px;
+    position: relative;
+}
+
+.lines:before, .lines:after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 2px;
+}
+
+.lines:before {
+    top: 4px;
+}
+
+.lines:after {
+    top: 8px;
+}
+
+.plus {
+    width: 10px;
+    height: 10px;
+    position: relative;
+}
+
+.plus:before, .plus:after {
+    content: "";
+    position: absolute;
+}
+
+.plus:before {
+    width: 100%;
+    height: 2px;
+    top: 50%;
+    margin-top: -1px;
+}
+
+.plus:after {
+    height: 100%;
+    width: 2px;
+    left: 50%;
+    margin-left: -1px;
+}
+
+.lines, .lines:before, .lines:after,
+.plus:before, .plus:after {
+    background: #aaaaaa;
+}
+
+.icon:hover .lines, .icon:hover .lines:before, .icon:hover .lines:after,
+.icon:hover .plus:before, .icon:hover .plus:after {
+    background: #333333;
+}
+
+#newthread {
+    display: none;
 }
 
 .thread {
-    width: 600px;
+    width: 520px;
     height: 100%;
     float: left;
-}
-
-.thread .input {
-    position: absolute;
-    bottom: 0;
-    height: 100px;
-    padding: 15px 40px 0 130px;
-    border-top: 1px solid #cccccc;
-    resize: none;
-    width: inherit;
-    box-sizing: border-box;
 }
 
 .msgs {
     height: 100%;
-    padding-bottom: 105px;
-    padding-right: 40px;
+    padding: 0 20px 110px 20px;
     overflow: auto;
-    box-sizing: border-box;
 }
 
 .msg {
     margin: 10px 0;
-}
-
-.msg .username, .msg .body {
-    display: table-cell;
+    line-height: 1.3em;
 }
 
 .msg .username {
-    font-size: 13px;
-    text-align: right;
-    width: 110px;
-    padding-right: 20px;
+    color: #888888;
+}
+
+.thread .input {
+    position: absolute;
+    bottom: 30px;
+    height: 80px;
+    padding: 10px 20px;
+    border-top: 1px solid #cccccc;
+    resize: none;
+    width: inherit;
+}
+
+.options {
+    position: absolute;
+    bottom: 0;
+    width: inherit;
+    height: 30px;
+    border-top: 1px solid #cccccc;
+    background: #ffffff;
+}
+
+.thread .button {
+    font-family: "Arial", sans-serif;
+    font-size: 12px;
+    height: 100%;
+    width: 100px;
+    color: #888888;
+    background: #ffffff;
+    border: none;
+    border-right: 1px solid #cccccc;
+    float: left;
+}
+
+.thread .button:hover {
+    color: #333333;
+    background: #f6f6f6;
+}
+
+.thread .button:active {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+    -moz-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+}
+
+.check {
+    font-family: "Arial", sans-serif;
+    font-size: 12px;
+    color: #888888;
+    float: right;
+    padding: 8px 20px 0 0;
+    position: relative;
+}
+
+.check:hover {
+    color: #333333;
+}
+
+.check input {
+    visibility: hidden;
+}
+
+.checklabel:before {
+    content: "";
+    position: absolute;
+    border: 1px solid #cccccc;
+    padding: 5px;
+    left: -1px;
+    bottom: 1px;
+}
+
+.check:hover .checklabel:before, .check input:checked + .checklabel:before {
+    border: 1px solid #999999;
+}
+
+.check input:checked + .checklabel:after {
+    content: "\2713";
+    color: #666666;
+    position: absolute;
+    left: 0px;
 }

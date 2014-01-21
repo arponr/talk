@@ -3,7 +3,7 @@ var input, output, websocket;
 function showMessage(m) {
     var msg = document.createElement("div");
     msg.className = "msg";
-    var username = document.createElement("div");
+    var username = document.createElement("span");
     username.className = "username";
     username.innerHTML = m.Username + ":";
     msg.appendChild(username);
@@ -12,8 +12,9 @@ function showMessage(m) {
     body.innerHTML = m.Body;
     msg.appendChild(body);
     MathJax.Hub.Queue(["Typeset", MathJax.Hub, body]);
+    var bottom = output.scrollTop == output.scrollHeight - output.offsetHeight;
     output.appendChild(msg);
-    scroll();
+    if (bottom) scroll();
 }
 
 function onMessage(e) {
@@ -29,6 +30,7 @@ function sendMessage() {
 function onKey(e) {
     if (e.shiftKey && e.keyCode == 13) {
         sendMessage();
+        return false;
     }
 }
 
@@ -36,16 +38,32 @@ function scroll() {
     output.scrollTop = output.scrollHeight;
 }
 
-function init() {
+window.onload = function() {
     input = document.getElementById("input");
-    input.onkeyup = onKey;
+    input.onkeydown = onKey;
 
     output = document.getElementById("msgs");
     MathJax.Hub.Register.StartupHook("End", scroll);
+    MathJax.Hub.Config({
+        "HTML-CSS": {
+            scale: 95,
+            availableFonts: [],
+            webFont: "STIX-Web",
+        }
+    });
 
     var url = location.href.replace(/^http/, "ws").replace("thread", "socket")
     websocket = new WebSocket(url);
     websocket.onmessage = onMessage;
-}
 
-window.onload = init
+    var newthread = document.getElementById("newthread");
+    newthread.style.display = "none";
+    document.getElementById("plusicon").onclick = function() {
+        if (newthread.style.display != "none") {
+            newthread.style.display = "none";
+        } else {
+            newthread.style.display = "block";
+            newthread.elements[0].focus();
+        }
+    };
+};
