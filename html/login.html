@@ -1,21 +1,29 @@
+{{define "page"}}login{{end}}
+
 {{define "content"}}
-<div class="login_wrapper">
-  <header class="title">
-    <div class="name">Arrow</div>
-    <div class="desc">Internet chat as God intended</div>
+<div id="login_wrapper">
+  <header id="head" class="sans">
+    <h1>Arrow</h1>
+    <h2>Internet chat as God intended</h2>
   </header>
 
-  <form class="login" action="/login" method="POST">
-    <input type="text" name="username" class="input" placeholder="username" autocomplete="off">
-    <input type="password" name="password" class="input" placeholder="password" autocomplete="off">
-    <input type="submit" class="submit" value="login">
-  </form>
+  <div id="flashes" class="sans small">
+    {{range .}}
+    {{.}}<br/>
+    {{end}}
+  </div>
 
-  <form class="register" action="/register" method="POST">
-    <input type="text" name="username" class="input" placeholder="username (3-12 characters)" autocomplete="off">
-    <input type="password" name="password" class="input" placeholder="password (> 5 characters)" autocomplete="off">
-    <input type="password" name="password_again" class="input" placeholder="retype password" autocomplete="off">
-    <input type="submit" class="submit" value="register">
+  <form id="login" action="/login" method="POST">
+    <input type="text" name="username" class="input"
+           placeholder="username" autocomplete="off" spellcheck="false">
+    <input type="password" name="password" class="input"
+           placeholder="password" autocomplete="off">
+    <input type="password" name="password_again" id="again" class="input hide"
+           placeholder="retype password" autocomplete="off">
+    <input type="submit" id="submit" class="submit light pointer"
+           value="login">
   </form>
+  <input type="button" id="switch" class="sans small light pointer"
+         value="need to register?">
 </div>
 {{end}}

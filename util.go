@@ -39,18 +39,20 @@ func markdown(input []byte) string {
 
 func safe(s string) interface{} { return template.HTML(s) }
 
-func buildTemplate(files ...string) *template.Template {
-	files = append(files, "html/base.html")
+func buildTemplate(names ...string) *template.Template {
+	files := []string{"html/base.html"}
+	for _, f := range names {
+		files = append(files, "html/"+f+".html")
+	}
 	return template.Must(template.New("").Funcs(template.FuncMap{
 		"safe": safe,
 	}).ParseFiles(files...))
 }
 
 var templates = map[string]*template.Template{
-	"root":      buildTemplate("html/root.html"),
-	"login":     buildTemplate("html/login.html"),
-	"thread":    buildTemplate("html/thread.html"),
-	"newthread": buildTemplate("html/newthread.html"),
+	"login":  buildTemplate("login"),
+	"root":   buildTemplate("main", "root"),
+	"thread": buildTemplate("main", "thread"),
 }
 
 func render(w http.ResponseWriter, tmpl string, data interface{}) error {
@@ -59,4 +61,8 @@ func render(w http.ResponseWriter, tmpl string, data interface{}) error {
 
 func serveError(w http.ResponseWriter, err error) {
 	http.Error(w, err.Error(), http.StatusInternalServerError)
+}
+
+func serveDNE(w http.ResponseWriter, r *http.Request) {
+	http.NotFound(w, r)
 }

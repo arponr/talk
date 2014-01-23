@@ -2,21 +2,14 @@
 <html>
   <head>
     <meta charset="utf-8"/>
-    <link href="/static/fonts.css" rel="stylesheet" type="text/css">
-    <link href="/static/style.css" rel="stylesheet" type="text/css">
-    <script type="text/javascript" src="/static/j.js"></script>
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-      tex2jax: {inlineMath: [['$','$']]},
-      "HTML-CSS": {scale: 95},
-      });
-    </script>
     <script type="text/javascript"
             src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
     </script>
+    <link href="/static/style.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/static/j.js"></script>
   </head>
 
-  <body>
+  <body id="{{template "page"}}page">
     {{template "content" .}}
   </body>
 </html>

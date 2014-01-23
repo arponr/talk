@@ -1,0 +1,31 @@
+{{define "content"}}
+<div id="main_wrapper">
+  <div id="left">
+    <div id="control">
+      <div id="linesicon" class="icon pointer"><div class="lines"></div></div>
+      <div id="plusicon" class="icon pointer"><div class="plus"></div></div>
+    </div>
+    <form id="newthread" class="item sans hide" action="/newthread" method="POST">
+      <input type="text" name="name" class="name input"
+             placeholder="thread name" autocomplete="off" spellcheck="false">
+      <input type="text" name="users" class="users input small light"
+             placeholder="invite people" autocomplete="off" spellcheck="false">
+      <input type="submit" class="submit small light pointer" value="start thread">
+    </form>
+    {{range .Threads}}
+    <a href="/thread/{{.Id}}" class="item pointer">
+      <div class="name sans truncate">{{.Name}}</div>
+      <div class="users sans small light truncate">
+        {{range $i, $u := .Users}}{{if $i}}, {{end}}{{$u}}{{end}}
+      </div>
+      <div class="lastmsg light truncate">
+        {{.Last.Username}}: {{.Last.Body | safe}}
+      </div>
+    </a>
+    {{end}}
+  </div>
+  <div id="right">
+    {{template "right" .}}
+  </div>
+</div>
+{{end}}

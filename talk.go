@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 
 	"code.google.com/p/go.net/websocket"
@@ -66,69 +67,87 @@ func send(threadId int, src *connection) error {
 	}
 }
 
-var (
-	socketHandler = websocket.Handler(
-		func(s *websocket.Conn) {
-			r := s.Request()
-			u, err := getUser(r)
-			if err != nil || u.id < 0 {
-				s.Write([]byte("Your login is invalid"))
-				return
-			}
-			c := &connection{s, u}
-			threadId, err := strconv.Atoi(r.URL.Path[len("/socket/"):])
-			if err != nil {
-				s.Write([]byte("You're trying to write to an invalid thread url"))
-			}
-			cache.Lock()
-			cache.m[threadId][c] = true
-			cache.Unlock()
-			if err := send(threadId, c); err != nil {
-				s.Write([]byte("Your connection closed with an error:" + err.Error()))
-			}
-			cache.Lock()
-			delete(cache.m[threadId], c)
-			cache.Unlock()
-		})
+func socket(s *websocket.Conn) {
+	r := s.Request()
+	u, err := getUser(r)
+	if err != nil || u == nil {
+		s.Write([]byte("Your login is invalid"))
+		return
+	}
+	c := &connection{s, u}
+	threadId, err := strconv.Atoi(r.URL.Path[len("/socket/"):])
+	if err != nil {
+		s.Write([]byte("You're trying to write to an invalid thread url"))
+	}
+	cache.Lock()
+	cache.m[threadId][c] = true
+	cache.Unlock()
+	if err := send(threadId, c); err != nil {
+		s.Write([]byte("Your connection closed with an error:" + err.Error()))
+	}
+	cache.Lock()
+	delete(cache.m[threadId], c)
+	cache.Unlock()
+}
 
-	threadHandler = userHandler(
-		func(w http.ResponseWriter, r *http.Request, u *user) error {
-			threadId, err := strconv.Atoi(r.URL.Path[len("/thread/"):])
-			if err != nil {
-				return err
-			}
-			var data struct {
-				Threads  []thread
-				Messages []message
-			}
-			data.Threads, err = userThreads(u.id)
-			if err != nil {
-				return err
-			}
-			data.Messages, err = threadMessages(threadId)
-			if err != nil {
-				return err
-			}
-			return render(w, "thread", data)
-		})
+func readThread(w http.ResponseWriter, r *http.Request, c *context) (err error) {
+	threadId, err := strconv.Atoi(r.URL.Path[len("/thread/"):])
+	if err != nil {
+		serveDNE(w, r)
+		return nil
+	}
+	if !userInThread(threadId, c.user.id) {
+		serveDNE(w, r)
+		return nil
+	}
+	var data struct {
+		Threads  []thread
+		Messages []message
+	}
+	data.Threads, err = userThreads(c.user.id)
+	if err != nil {
+		return err
+	}
+	data.Messages, err = threadMessages(threadId)
+	if err != nil {
+		return err
+	}
+	return render(w, "thread", data)
+}
 
-	newThreadHandler = userHandler(
-		func(w http.ResponseWriter, r *http.Request, u *user) error {
-			switch r.Method {
-			case "GET":
-				return render(w, "newthread", nil)
-			case "POST":
-				name := r.FormValue("name")
-				var threadId int
-				sql := "INSERT INTO threads (thread_name) VALUES ($1) RETURNING thread_id"
-				if err := db.QueryRow(sql, name).Scan(&threadId); err != nil {
-					return err
-				}
-				cache.Lock()
-				cache.m[threadId] = make(connSet)
-				cache.Unlock()
-				http.Redirect(w, r, "/thread/"+strconv.Itoa(threadId), http.StatusSeeOther)
-			}
-			return nil
-		})
-)
+func root(w http.ResponseWriter, r *http.Request, c *context) (err error) {
+	var data struct {
+		Threads []thread
+	}
+	data.Threads, err = userThreads(c.user.id)
+	if err != nil {
+		return err
+	}
+	return render(w, "root", data)
+}
+
+func newThread(w http.ResponseWriter, r *http.Request, c *context) (err error) {
+	threadName := r.FormValue("name")
+	usernames := strings.Split(r.FormValue("users"), " ")
+	var threadId int
+	sql := "INSERT INTO threads (thread_name) VALUES ($1) RETURNING thread_id"
+	if err = db.QueryRow(sql, threadName).Scan(&threadId); err != nil {
+		return err
+	}
+	ids, err := nameToId(usernames)
+	if err != nil {
+		return err
+	}
+	ids = append(ids, c.user.id)
+	sql = "INSERT INTO user_threads (user_id, thread_id) VALUES ($1, $2)"
+	for _, id := range ids {
+		if _, err = db.Exec(sql, id, threadId); err != nil {
+			return err
+		}
+	}
+	cache.Lock()
+	cache.m[threadId] = make(connSet)
+	cache.Unlock()
+	http.Redirect(w, r, "/thread/"+strconv.Itoa(threadId), http.StatusSeeOther)
+	return nil
+}

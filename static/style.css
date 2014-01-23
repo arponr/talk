@@ -5,6 +5,10 @@
     padding: 0;
     -webkit-font-smoothing: antialiased;
     box-sizing: border-box;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    text-decoration: none;
 }
 
 html, body {
@@ -15,16 +19,46 @@ body {
     font-family: "Times New Roman", "Times", serif;
     font-size: 14px;
     color: #333333;
+    background: transparent;
 }
 
-.input {
-    font: inherit;
-    color: #333333;
+h1 {
+    font-weight: normal;
+    font-size: 28px;
+}
+
+h2 {
+    font-weight: normal;
+    font-size: 16px;
+}
+
+input, textarea {
     border: none;
+    background: inherit;
 }
 
-.input:focus, .submit:focus, .button:focus {
+input[type="submit"], input[type="button"] {
+    display: block;
+}
+
+textarea {
+    resize: none;
+}
+
+input:focus, textarea:focus {
     outline: none;
+}
+
+.sans {
+    font-family: "Helvetica", sans-serif;
+}
+
+.small {
+    font-size: 12px;
+}
+
+.light {
+    color: #888888;
 }
 
 .noselect {
@@ -36,132 +70,185 @@ body {
     user-select: none;
 }
 
+.hide {
+    display: none;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.check input {
+    visibility: hidden;
+}
+
+.checklabel:before {
+    content: "";
+    position: absolute;
+    left: -1px;
+    bottom: 1px;
+    border: 1px solid #cccccc;
+    padding: 5px;
+}
+
+.check:hover .checklabel:before, .check input:checked + .checklabel:before {
+    border: 1px solid #999999;
+}
+
+.check input:checked + .checklabel:after {
+    content: "\2713";
+    color: #666666;
+    position: absolute;
+    left: 0px;
+}
+
+.check:hover {
+    color: #333333;
+}
+
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* ------ login ------ */
 
-.login_wrapper {
-    width: 600px;
+#login_wrapper {
+    width: 250px;
     position: absolute;
     top: 50%;
     left: 0;
     right: 0;
-    margin: -200px auto 0 auto;
+    margin: -160px auto 0;
 }
 
-.title {
-    font-family: "Arial", sans-serif;
-    margin-bottom: 50px;
+#login_wrapper #head {
+    margin-bottom: 40px;
 }
 
-.title .name {
-    font-size: 40px;
+#flashes {
+    color: #dd0000;
+    margin-bottom: 20px;
 }
 
-.title .desc {
-    font-size: 20px;
-}
-
-.login, .register {
-    width: 250px;
-    display: table-cell;
-}
-
-.login {
-    padding-right: 100px;
-}
-
-.login_wrapper .input {
+#login .input {
     width: 100%;
     padding-bottom: 5px;
     margin-bottom: 20px;
     border-bottom: 1px solid #cccccc;
 }
 
-.login_wrapper .submit {
-    font: inherit;
+#login .submit {
     width: 100%;
     height: 30px;
-    background: #ffffff;
-    color: #aaaaaa;
     border: 1px solid #cccccc;
-    margin-top: 20px;
+    margin: 40px 0 20px;
 }
 
-.login_wrapper .submit:hover {
+#login .submit:hover {
     color: #333333;
     border: 1px solid #999999;
 }
 
-.login_wrapper .submit:active {
-    -webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
-    -moz-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+#login .submit:active {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+    -moz-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
 }
 
-/* ------ thread ------ */
-
-.thread_wrapper {
+#switch {
     margin: 0 auto;
-    width: 800px;
+    padding-bottom: 3px;
+}
+
+#switch:hover {
+    color: #333333;
+    border-bottom: 1px solid #999999;
+}
+
+/* ------ main ------ */
+
+#main_wrapper {
+    width: 760px;
+    max-width: 100%;
     height: 100%;
+    margin: 0 auto;
     border-left: 1px solid #cccccc;
     border-right: 1px solid #cccccc;
-    background: #ffffff;
-    box-sizing: content-box;
 }
 
-.threads {
-    width: 280px;
+#left {
+    width: 35%;
     height: 100%;
     border-right: 1px solid #cccccc;
     float: left;
 }
 
-.threads .control, .threads .item {
-    font-family: "Arial", sans-serif;
+#right {
+    width: 65%;
+    height: 100%;
+    position: relative;
+    float: left;
+}
+
+#control, #left .item {
     border-bottom: 1px solid #cccccc;
-    padding-left: 10px;
-    padding-right: 10px;
 }
 
-.threads .control {
-    font-size: 13px;
-    font-weight: bold;
-    height: 40px;
-    padding: 10px;
+#control {
+    height: 30px;
+    padding: 5px;
 }
 
-.threads .item {
+#left .item {
     height: 80px;
-    padding: 20px 10px;
+    padding: 15px;
 }
 
-.threads .name {
+#left a.item {
+    display: block;
+}
+
+#left a.item:hover {
+    background: #f6f6f6;
+}
+
+#left .item .users {
     margin-bottom: 5px;
 }
 
-.threads .users {
-    font-size: 13px;
-    color: #666666;
+#left .item .lastmsg p {
+    display: inline;
+}
+
+#newthread .input {
+    width: 100%;
+}
+
+#newthread .submit:hover {
+    color: #333333;
+    border-bottom: 1px solid #999999;
 }
 
 .icon {
     height: 20px;
-    width: 25px;
-    float: left;
     padding: 5px;
+    margin-right: 5px;
+    float: right;
 }
 
 .lines {
-    height: 2px;
     width: 12px;
+    height: 2px;
     position: relative;
 }
 
 .lines:before, .lines:after {
     content: "";
-    position: absolute;
     width: 100%;
     height: 2px;
+    position: absolute;
 }
 
 .lines:before {
@@ -191,8 +278,8 @@ body {
 }
 
 .plus:after {
-    height: 100%;
     width: 2px;
+    height: 100%;
     left: 50%;
     margin-left: -1px;
 }
@@ -207,19 +294,24 @@ body {
     background: #333333;
 }
 
-#newthread {
-    display: none;
+/* ------ root ------ */
+
+#instructions {
+    text-align: center;
+    position: relative;
+    top: 50%;
+    margin: -50px auto 0;
 }
 
-.thread {
-    width: 520px;
-    height: 100%;
-    float: left;
+#instructions h1 {
+    margin-bottom: 10px;
 }
 
-.msgs {
+/* ------ thread ------ */
+
+#msgs {
     height: 100%;
-    padding: 0 20px 110px 20px;
+    padding: 0 15px 110px;
     overflow: auto;
 }
 
@@ -228,85 +320,48 @@ body {
     line-height: 1.3em;
 }
 
-.msg .username {
-    color: #888888;
+#threadpage #right #input, #options {
+    width: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: #ffffff;
 }
 
-.thread .input {
-    position: absolute;
-    bottom: 30px;
+#threadpage #right #input {
     height: 80px;
+    bottom: 30px;
     padding: 10px 20px;
     border-top: 1px solid #cccccc;
-    resize: none;
-    width: inherit;
 }
 
-.options {
-    position: absolute;
-    bottom: 0;
-    width: inherit;
+#threadpage #right #options {
     height: 30px;
+    bottom: 0;
     border-top: 1px solid #cccccc;
-    background: #ffffff;
 }
 
-.thread .button {
-    font-family: "Arial", sans-serif;
-    font-size: 12px;
-    height: 100%;
+#threadpage #right .button {
     width: 100px;
-    color: #888888;
-    background: #ffffff;
-    border: none;
+    height: 100%;
     border-right: 1px solid #cccccc;
     float: left;
 }
 
-.thread .button:hover {
+#threadpage #right .button:hover {
     color: #333333;
     background: #f6f6f6;
 }
 
-.thread .button:active {
+#threadpage #right .button:active {
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
     -moz-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
     box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
 }
 
-.check {
-    font-family: "Arial", sans-serif;
-    font-size: 12px;
-    color: #888888;
-    float: right;
-    padding: 8px 20px 0 0;
+#threadpage #right .check {
     position: relative;
+    margin: 9px 20px 0 0;
+    float: right;
 }
 
-.check:hover {
-    color: #333333;
-}
-
-.check input {
-    visibility: hidden;
-}
-
-.checklabel:before {
-    content: "";
-    position: absolute;
-    border: 1px solid #cccccc;
-    padding: 5px;
-    left: -1px;
-    bottom: 1px;
-}
-
-.check:hover .checklabel:before, .check input:checked + .checklabel:before {
-    border: 1px solid #999999;
-}
-
-.check input:checked + .checklabel:after {
-    content: "\2713";
-    color: #666666;
-    position: absolute;
-    left: 0px;
-}
