@@ -53,8 +53,8 @@ func login(w http.ResponseWriter, r *http.Request, c *context) (err error) {
 	password := r.FormValue("password")
 	var id int
 	var passhash []byte
-	sql := "SELECT user_id, passhash FROM users WHERE username = $1"
-	if err = db.QueryRow(sql, username).Scan(&id, &passhash); err != nil {
+	stmt := "SELECT user_id, passhash FROM users WHERE username = $1"
+	if err = db.QueryRow(stmt, username).Scan(&id, &passhash); err != nil {
 		c.sess.AddFlash("invalid username")
 		return nil
 	}
@@ -89,8 +89,8 @@ func register(w http.ResponseWriter, r *http.Request, c *context) (err error) {
 		return err
 	}
 	var id int
-	sql := "INSERT INTO users (username, passhash) VALUES ($1, $2) RETURNING user_id"
-	if err = db.QueryRow(sql, username, passhash).Scan(&id); err != nil {
+	stmt := "INSERT INTO users (username, passhash) VALUES ($1, $2) RETURNING user_id"
+	if err = db.QueryRow(stmt, username, passhash).Scan(&id); err != nil {
 		c.sess.AddFlash("username is taken already")
 		return nil
 	}

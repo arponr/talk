@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"html/template"
 	"io"
 	"net/http"
 	"strconv"
@@ -16,12 +17,12 @@ type connection struct {
 	user *user
 }
 
-type connSet map[*connection]bool
+type encSet map[*json.Encoder]bool
 
 var cache = struct {
 	sync.RWMutex
-	m map[int]connSet
-}{m: make(map[int]connSet)}
+	m map[int]encSet
+}{m: make(map[int]encSet)}
 
 func initCache() error {
 	rows, err := db.Query("SELECT thread_id FROM threads")
@@ -34,35 +35,37 @@ func initCache() error {
 		if err != nil {
 			return err
 		}
-		cache.m[threadId] = make(connSet)
+		cache.m[threadId] = make(encSet)
 	}
 	return rows.Err()
 }
 
-func send(threadId int, src *connection) error {
-	buf := make([]byte, 32*1024)
+func send(threadId int, c *connection) (err error) {
+	src := json.NewDecoder(c)
 	for {
-		nr, er := src.Read(buf)
-		if nr > 0 {
-			md := markdown(buf[0:nr])
-			msg := message{src.user.username, md}
-			sql := "INSERT INTO messages (username, body, thread_id) VALUES ($1, $2, $3)"
-			if _, ew := db.Exec(sql, msg.Username, msg.Body, threadId); ew != nil {
-				return ew
-			}
-			cache.RLock()
-			t := cache.m[threadId]
-			cache.RUnlock()
-			for dst, _ := range t {
-				enc := json.NewEncoder(dst)
-				enc.Encode(&msg)
-			}
-		}
-		if er == io.EOF {
+		var m message
+		if err = src.Decode(&m); err == io.EOF {
 			return nil
+		} else if err != nil {
+			return
 		}
-		if er != nil {
-			return er
+		if m.Markdown {
+			m.Body = markdown(m.Body, m.Tex)
+		} else {
+			m.Body = template.HTMLEscapeString(m.Body)
+		}
+		m.Username = c.user.username
+		stmt := "INSERT INTO messages (username, body, tex, thread_id) " +
+			"VALUES ($1, $2, $3, $4) RETURNING time"
+		err = db.QueryRow(stmt, m.Username, m.Body, m.Tex, threadId).Scan(&m.Time)
+		if err != nil {
+			return
+		}
+		cache.RLock()
+		conns := cache.m[threadId]
+		cache.RUnlock()
+		for dst, _ := range conns {
+			dst.Encode(&m)
 		}
 	}
 }
@@ -79,14 +82,15 @@ func socket(s *websocket.Conn) {
 	if err != nil {
 		s.Write([]byte("You're trying to write to an invalid thread url"))
 	}
+	enc := json.NewEncoder(s)
 	cache.Lock()
-	cache.m[threadId][c] = true
+	cache.m[threadId][enc] = true
 	cache.Unlock()
 	if err := send(threadId, c); err != nil {
 		s.Write([]byte("Your connection closed with an error:" + err.Error()))
 	}
 	cache.Lock()
-	delete(cache.m[threadId], c)
+	delete(cache.m[threadId], enc)
 	cache.Unlock()
 }
 
@@ -101,8 +105,8 @@ func readThread(w http.ResponseWriter, r *http.Request, c *context) (err error) 
 		return nil
 	}
 	var data struct {
-		Threads  []thread
-		Messages []message
+		Threads  []*thread
+		Messages []*message
 	}
 	data.Threads, err = userThreads(c.user.id)
 	if err != nil {
@@ -117,7 +121,7 @@ func readThread(w http.ResponseWriter, r *http.Request, c *context) (err error) 
 
 func root(w http.ResponseWriter, r *http.Request, c *context) (err error) {
 	var data struct {
-		Threads []thread
+		Threads []*thread
 	}
 	data.Threads, err = userThreads(c.user.id)
 	if err != nil {
@@ -130,8 +134,8 @@ func newThread(w http.ResponseWriter, r *http.Request, c *context) (err error) {
 	threadName := r.FormValue("name")
 	usernames := strings.Split(r.FormValue("users"), " ")
 	var threadId int
-	sql := "INSERT INTO threads (thread_name) VALUES ($1) RETURNING thread_id"
-	if err = db.QueryRow(sql, threadName).Scan(&threadId); err != nil {
+	stmt := "INSERT INTO threads (thread_name) VALUES ($1) RETURNING thread_id"
+	if err = db.QueryRow(stmt, threadName).Scan(&threadId); err != nil {
 		return err
 	}
 	ids, err := nameToId(usernames)
@@ -139,14 +143,14 @@ func newThread(w http.ResponseWriter, r *http.Request, c *context) (err error) {
 		return err
 	}
 	ids = append(ids, c.user.id)
-	sql = "INSERT INTO user_threads (user_id, thread_id) VALUES ($1, $2)"
+	stmt = "INSERT INTO user_threads (user_id, thread_id) VALUES ($1, $2)"
 	for _, id := range ids {
-		if _, err = db.Exec(sql, id, threadId); err != nil {
+		if _, err = db.Exec(stmt, id, threadId); err != nil {
 			return err
 		}
 	}
 	cache.Lock()
-	cache.m[threadId] = make(connSet)
+	cache.m[threadId] = make(encSet)
 	cache.Unlock()
 	http.Redirect(w, r, "/thread/"+strconv.Itoa(threadId), http.StatusSeeOther)
 	return nil

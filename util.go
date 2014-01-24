@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/russross/blackfriday"
 )
@@ -13,31 +14,39 @@ var (
 	uncensor = regexp.MustCompile(`\${3,}`)
 )
 
-func replace(vals [][]byte) func([]byte) []byte {
-	i := -1
-	return func(b []byte) []byte {
-		i++
-		if i < len(vals) {
-			return vals[i]
+func replace(v [][]byte) func(string) string {
+	i := 0
+	return func(in string) (out string) {
+		if i < len(v) {
+			out = string(v[i])
+			i++
 		}
-		return b
+		return out
 	}
 }
 
-func markdown(input []byte) string {
-	matches := censor.FindAll(input, -1)
-	tex := make([][]byte, len(matches))
-	for i, m := range matches {
-		tex[i] = make([]byte, len(m))
-		for j := range m {
-			tex[i][j], m[j] = m[j], '$'
+func markdown(text string, math bool) (out string) {
+	in := []byte(text)
+	if math {
+		matches := censor.FindAll(in, -1)
+		tex := make([][]byte, len(matches))
+		for i, m := range matches {
+			tex[i] = make([]byte, len(m))
+			for j := range m {
+				tex[i][j], m[j] = m[j], '$'
+			}
 		}
+		defer func() {
+			out = uncensor.ReplaceAllStringFunc(out, replace(tex))
+		}()
 	}
-	output := blackfriday.MarkdownCommon(input)
-	return string(uncensor.ReplaceAllFunc(output, replace(tex)))
+	out = string(blackfriday.MarkdownCommon(in))
+	return
 }
 
-func safe(s string) interface{} { return template.HTML(s) }
+func safe(s string) interface{}       { return template.HTML(s) }
+func dateFmt(t time.Time) interface{} { return t.Format("2006-01-02") }
+func timeFmt(t time.Time) interface{} { return t.Format("3:04pm") }
 
 func buildTemplate(names ...string) *template.Template {
 	files := []string{"html/base.html"}
@@ -46,6 +55,8 @@ func buildTemplate(names ...string) *template.Template {
 	}
 	return template.Must(template.New("").Funcs(template.FuncMap{
 		"safe": safe,
+		"date": dateFmt,
+		"time": timeFmt,
 	}).ParseFiles(files...))
 }
 

@@ -112,6 +112,12 @@ input:focus, textarea:focus {
     text-overflow: ellipsis;
 }
 
+.time {
+    font-size: 11px;
+    float: right;
+    position: relative;
+}
+
 /* ------ login ------ */
 
 #login_wrapper {
@@ -214,6 +220,16 @@ input:focus, textarea:focus {
     background: #f6f6f6;
 }
 
+#left .item .item {
+    float: right;
+}
+
+#left .item .time {
+    top: 3px;
+    width: 60px;
+    text-align: right;
+}
+
 #left .item .users {
     margin-bottom: 5px;
 }
@@ -311,13 +327,25 @@ input:focus, textarea:focus {
 
 #msgs {
     height: 100%;
-    padding: 0 15px 110px;
+    padding: 15px 15px 115px;
     overflow: auto;
 }
 
 .msg {
-    margin: 10px 0;
+    margin-bottom: 10px;
+}
+
+.msg .username {
+    float: left;
+}
+
+.msg .time {
+    top: 2px;
+}
+
+.msg .body {
     line-height: 1.3em;
+    clear: both;
 }
 
 #threadpage #right #input, #options {
@@ -331,7 +359,7 @@ input:focus, textarea:focus {
 #threadpage #right #input {
     height: 80px;
     bottom: 30px;
-    padding: 10px 20px;
+    padding: 15px;
     border-top: 1px solid #cccccc;
 }
 
@@ -361,7 +389,7 @@ input:focus, textarea:focus {
 
 #threadpage #right .check {
     position: relative;
-    margin: 9px 20px 0 0;
+    margin: 9px 15px 0 0;
     float: right;
 }
 

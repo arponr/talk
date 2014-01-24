@@ -1,3 +1,24 @@
+function prezero(x) {
+    return x < 10 ? "0" + x : x
+}
+
+function printDate(d) {
+    return d.getFullYear() + "-" + prezero(d.getMonth() + 1) + "-" + prezero(d.getDay());
+}
+
+function printTime(d) {
+    var h = d.getHours();
+    var m = d.getMinutes();
+    var p;
+    if (h > 12) {
+        h -= 12;
+        p = "pm";
+    } else {
+        p = "am";
+    }
+    return h + ":" + prezero(m) + p;
+}
+
 function create(tag, cl, html, ch) {
     var el = document.createElement(tag)
     if (cl) el.className = cl;
@@ -29,21 +50,29 @@ function threadLoad() {
     var socket = websocket(location.href);
     socket.onmessage = function(e) {
         m = JSON.parse(e.data);
-        var username = create("div", "light", m.Username + ":", []);
-        var body = create("div", "", m.Body, []);
-        var msg = create("div", "msg", "", [username, body]);
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub, body]);
+        var username = create("div", "username light", m.Username + ":", []);
+        var d = new Date(m.Time);
+        var time = create("div", "time light sans", printDate(d) + ", " + printTime(d), []);
+        var body = create("div", "body" + (m.Tex ? " math" : ""), m.Body, []);
+        var msg = create("div", "msg", "", [username, time, body]);
+        if (m.Tex) MathJax.Hub.Queue(["Typeset", MathJax.Hub, body]);
         var atBottom = output.scrollTop == bottom(output)
         output.appendChild(msg);
         if (atBottom) scroll(output);
     };
 
+    var markdown = document.getElementById("markdown");
+    var tex = document.getElementById("tex");
     var input = document.getElementById("input");
     input.onkeydown = function(e) {
         if (e.shiftKey && e.keyCode == 13) {
-            var m = input.value;
+            var m = {
+                "Body": input.value,
+                "Markdown": markdown.checked,
+                "Tex": tex.checked,
+            };
             input.value = "";
-            socket.send(m);
+            socket.send(JSON.stringify(m));
             e.preventDefault();
         }
     };
@@ -55,7 +84,11 @@ function rootLoad() {
 
 function mainLoad() {
     MathJax.Hub.Config({
-        tex2jax: {inlineMath: [['$','$']]},
+        tex2jax: {
+            inlineMath: [['$','$']],
+            processClass: "math",
+            ignoreClass: "nomath",
+        },
         "HTML-CSS": {
             scale: 95,
             availableFonts: [],
@@ -74,17 +107,20 @@ function mainLoad() {
         }
     };
 
-    var threads = document.getElementById("left").getElementsByClassName("item");
-    for (var i = 1; i < threads.length; i++) {
-        var socket = websocket(threads[i].href);
-        var lastmsg = threads[i].getElementsByClassName("lastmsg")[0];
-        socket.onmessage = function(l) {
+    var items = document.getElementById("left").getElementsByClassName("item");
+    for (var i = 1; i < items.length; i++) {
+        var socket = websocket(items[i].href);
+        var lastmsg = items[i].getElementsByClassName("lastmsg")[0];
+        var time = items[i].getElementsByClassName("time")[0];
+        socket.onmessage = function(l, t) {
             return function(e) {
-                m = JSON.parse(e.data);
+                var m = JSON.parse(e.data);
+                var d = new Date(m.Time);
                 l.innerHTML =  m.Username + ": " + m.Body;
-                MathJax.Hub.Queue(["Typeset", MathJax.Hub, l]);
+                t.innerHTML = printDate(d) + "<br/>" + printTime(d);
+                if (m.Tex) MathJax.Hub.Queue(["Typeset", MathJax.Hub, l]);
             };
-        }(lastmsg);
+        }(lastmsg, time);
     }
 }
 

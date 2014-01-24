@@ -4,8 +4,9 @@
 <div id="msgs">
   {{range .Messages}}
   <div class="msg">
-    <div class="light">{{.Username}}:</div>
-    <div>
+    <div class="username light">{{.Username}}:</div>
+    <div class="time light sans">{{.Time | date}}, {{.Time | time}}</div>
+    <div class="body{{if .Tex}} math{{end}}">
       {{.Body | safe}}
     </div>
   </div>

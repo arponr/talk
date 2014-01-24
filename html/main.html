@@ -14,13 +14,18 @@
     </form>
     {{range .Threads}}
     <a href="/thread/{{.Id}}" class="item pointer">
+      <div class="time sans light">
+        {{.Time | date}}<br/>{{.Time | time}}
+      </div>
       <div class="name sans truncate">{{.Name}}</div>
       <div class="users sans small light truncate">
         {{range $i, $u := .Users}}{{if $i}}, {{end}}{{$u}}{{end}}
       </div>
-      <div class="lastmsg light truncate">
+      {{if .Last}}
+      <div class="lastmsg light truncate{{if .Last.Tex}} math{{end}}">
         {{.Last.Username}}: {{.Last.Body | safe}}
       </div>
+      {{end}}
     </a>
     {{end}}
   </div>
