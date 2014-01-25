@@ -149,3 +149,30 @@ func nameToId(names []string) ([]int, error) {
 	}
 	return ids, nil
 }
+
+func insertMessage(threadId int, m *message) error {
+	stmt := "INSERT INTO messages (username, body, tex, time, thread_id) " +
+		"VALUES ($1, $2, $3, $4, $5)"
+	m.Time = time.Now().UTC()
+	_, err := db.Exec(stmt, m.Username, m.Body, m.Tex, m.Time, threadId)
+	return err
+}
+
+func insertThread(threadName string, usernames []string, creatorId int) (threadId int, err error) {
+	stmt := "INSERT INTO threads (thread_name, time) VALUES ($1, $2) RETURNING thread_id"
+	if err = db.QueryRow(stmt, threadName, time.Now().UTC()).Scan(&threadId); err != nil {
+		return
+	}
+	ids, err := nameToId(usernames)
+	if err != nil {
+		return
+	}
+	ids = append(ids, creatorId)
+	stmt = "INSERT INTO user_threads (user_id, thread_id) VALUES ($1, $2)"
+	for _, id := range ids {
+		if _, err = db.Exec(stmt, id, threadId); err != nil {
+			return
+		}
+	}
+	return
+}

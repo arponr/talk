@@ -2,13 +2,15 @@ function prezero(x) {
     return x < 10 ? "0" + x : x
 }
 
-function printDate(d) {
-    return d.getFullYear() + "-" + prezero(d.getMonth() + 1) + "-" + prezero(d.getDay());
+function printDate(t) {
+    return t.getFullYear()
+         + "-" + prezero(t.getMonth() + 1)
+         + "-" + prezero(t.getDate());
 }
 
-function printTime(d) {
-    var h = d.getHours();
-    var m = d.getMinutes();
+function printTime(t) {
+    var h = t.getHours();
+    var m = t.getMinutes();
     var p;
     if (h > 12) {
         h -= 12;
@@ -17,6 +19,19 @@ function printTime(d) {
         p = "am";
     }
     return h + ":" + prezero(m) + p;
+}
+
+function fmtTime(time, fmt) {
+    var t = new Date(time.getAttribute("datetime"));
+    time.innerHTML = fmt.replace("d", printDate(t))
+                        .replace("t", printTime(t));
+}
+
+function fmtTimes(el, fmt) {
+    var times = el.getElementsByTagName("time");
+    for (var i = 0; i < times.length; i++) {
+        fmtTime(times[i], fmt);
+    }
 }
 
 function create(tag, cl, html, ch) {
@@ -44,6 +59,8 @@ function websocket(url) {
 function threadLoad() {
     mainLoad();
 
+    fmtTimes(document.getElementById("right"), "d, t");
+
     var output = document.getElementById("msgs");
     MathJax.Hub.Register.StartupHook("End", function() { scroll(output); });
 
@@ -51,8 +68,9 @@ function threadLoad() {
     socket.onmessage = function(e) {
         m = JSON.parse(e.data);
         var username = create("div", "username light", m.Username + ":", []);
-        var d = new Date(m.Time);
-        var time = create("div", "time light sans", printDate(d) + ", " + printTime(d), []);
+        var time = create("time", "time light sans", "", []);
+        time.setAttribute("datetime", m.Time);
+        fmtTime(time, "d, t");
         var body = create("div", "body" + (m.Tex ? " math" : ""), m.Body, []);
         var msg = create("div", "msg", "", [username, time, body]);
         if (m.Tex) MathJax.Hub.Queue(["Typeset", MathJax.Hub, body]);
@@ -107,7 +125,11 @@ function mainLoad() {
         }
     };
 
-    var items = document.getElementById("left").getElementsByClassName("item");
+    var left = document.getElementById("left");
+
+    fmtTimes(left, "d<br/>t");
+
+    var items = left.getElementsByClassName("item");
     for (var i = 1; i < items.length; i++) {
         var socket = websocket(items[i].href);
         var lastmsg = items[i].getElementsByClassName("lastmsg")[0];
@@ -116,8 +138,10 @@ function mainLoad() {
             return function(e) {
                 var m = JSON.parse(e.data);
                 var d = new Date(m.Time);
-                l.innerHTML =  m.Username + ": " + m.Body;
-                t.innerHTML = printDate(d) + "<br/>" + printTime(d);
+                l.innerHTML =  m.Username + ": ";
+                l.appendChild(create("span", m.Tex ? "math" : "", m.Body, []))
+                t.setAttribute("datetime", m.Time);
+                fmtTime(t, "d<br/>t");
                 if (m.Tex) MathJax.Hub.Queue(["Typeset", MathJax.Hub, l]);
             };
         }(lastmsg, time);

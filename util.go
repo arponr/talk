@@ -44,9 +44,12 @@ func markdown(text string, math bool) (out string) {
 	return
 }
 
-func safe(s string) interface{}       { return template.HTML(s) }
-func dateFmt(t time.Time) interface{} { return t.Format("2006-01-02") }
-func timeFmt(t time.Time) interface{} { return t.Format("3:04pm") }
+func safe(s string) interface{} { return template.HTML(s) }
+
+func isoTime(t time.Time) interface{} {
+	j, _ := t.MarshalJSON()
+	return string(j[1 : len(j)-1])
+}
 
 func buildTemplate(names ...string) *template.Template {
 	files := []string{"html/base.html"}
@@ -54,9 +57,8 @@ func buildTemplate(names ...string) *template.Template {
 		files = append(files, "html/"+f+".html")
 	}
 	return template.Must(template.New("").Funcs(template.FuncMap{
-		"safe": safe,
-		"date": dateFmt,
-		"time": timeFmt,
+		"safe":    safe,
+		"isoTime": isoTime,
 	}).ParseFiles(files...))
 }
 

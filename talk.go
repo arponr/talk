@@ -55,11 +55,8 @@ func send(threadId int, c *connection) (err error) {
 			m.Body = template.HTMLEscapeString(m.Body)
 		}
 		m.Username = c.user.username
-		stmt := "INSERT INTO messages (username, body, tex, thread_id) " +
-			"VALUES ($1, $2, $3, $4) RETURNING time"
-		err = db.QueryRow(stmt, m.Username, m.Body, m.Tex, threadId).Scan(&m.Time)
-		if err != nil {
-			return
+		if err = insertMessage(threadId, &m); err != nil {
+			return err
 		}
 		cache.RLock()
 		conns := cache.m[threadId]
@@ -133,25 +130,13 @@ func root(w http.ResponseWriter, r *http.Request, c *context) (err error) {
 func newThread(w http.ResponseWriter, r *http.Request, c *context) (err error) {
 	threadName := r.FormValue("name")
 	usernames := strings.Split(r.FormValue("users"), " ")
-	var threadId int
-	stmt := "INSERT INTO threads (thread_name) VALUES ($1) RETURNING thread_id"
-	if err = db.QueryRow(stmt, threadName).Scan(&threadId); err != nil {
-		return err
-	}
-	ids, err := nameToId(usernames)
+	threadId, err := insertThread(threadName, usernames, c.user.id)
 	if err != nil {
-		return err
-	}
-	ids = append(ids, c.user.id)
-	stmt = "INSERT INTO user_threads (user_id, thread_id) VALUES ($1, $2)"
-	for _, id := range ids {
-		if _, err = db.Exec(stmt, id, threadId); err != nil {
-			return err
-		}
+		return
 	}
 	cache.Lock()
 	cache.m[threadId] = make(encSet)
 	cache.Unlock()
 	http.Redirect(w, r, "/thread/"+strconv.Itoa(threadId), http.StatusSeeOther)
-	return nil
+	return
 }
