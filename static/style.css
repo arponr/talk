@@ -112,12 +112,6 @@ input:focus, textarea:focus {
     text-overflow: ellipsis;
 }
 
-.time {
-    font-size: 11px;
-    float: right;
-    position: relative;
-}
-
 /* ------ login ------ */
 
 #login_wrapper {
@@ -184,6 +178,12 @@ input:focus, textarea:focus {
     border-right: 1px solid #cccccc;
 }
 
+#main_wrapper time {
+    font-size: 11px;
+    float: right;
+    position: relative;
+}
+
 #left {
     width: 35%;
     height: 100%;
@@ -198,7 +198,7 @@ input:focus, textarea:focus {
     float: left;
 }
 
-#control, #left .item {
+#control, #newthread, .thread {
     border-bottom: 1px solid #cccccc;
 }
 
@@ -207,39 +207,46 @@ input:focus, textarea:focus {
     padding: 5px;
 }
 
-#left .item {
-    height: 80px;
+#newthread, .thread {
     padding: 15px;
 }
 
-#left a.item {
+.thread {
     display: block;
 }
 
-#left a.item:hover {
+.thread:hover {
     background: #f6f6f6;
 }
 
-#left .item .item {
-    float: right;
-}
-
-#left .item .time {
+.thread time {
     top: 3px;
     width: 60px;
     text-align: right;
 }
 
-#left .item .users {
+.thread .users {
     margin-bottom: 5px;
 }
 
-#left .item .lastmsg p {
+.thread .lastmsg * {
     display: inline;
+}
+
+.thread .lastmsg a {
+    border-bottom: 1px solid #cccccc;
+}
+
+.thread .lastmsg a:hover {
+    border-bottom: 1px solid #999999;
 }
 
 #newthread .input {
     width: 100%;
+}
+
+#newthread .submit {
+    margin-top: 5px;
 }
 
 #newthread .submit:hover {
@@ -339,13 +346,47 @@ input:focus, textarea:focus {
     float: left;
 }
 
-.msg .time {
+.msg time {
     top: 2px;
 }
 
 .msg .body {
     line-height: 1.3em;
     clear: both;
+}
+
+.msg .body p {
+    margin-bottom: 5px;
+}
+
+.msg .body a {
+    border-bottom: 1px solid #999999;
+}
+
+.msg .body a:hover {
+    border-bottom: 1px solid #333333;
+}
+
+.msg .body ul {
+    list-style: none;
+}
+
+.msg .body ul, .msg .body ol {
+    margin-left: 35px;
+}
+
+.msg .body li {
+    margin: 5px 0;
+}
+
+.msg .body ul li {
+    text-indent: -14px;
+}
+
+.msg .body ul li:before {
+    content: "\2014";
+    position: relative;
+    left: -10px;
 }
 
 #threadpage #right #input, #options {

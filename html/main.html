@@ -5,7 +5,7 @@
       <div id="linesicon" class="icon pointer"><div class="lines"></div></div>
       <div id="plusicon" class="icon pointer"><div class="plus"></div></div>
     </nav>
-    <form id="newthread" class="item sans hide" action="/newthread" method="POST">
+    <form id="newthread" class="sans hide" action="/newthread" method="POST">
       <input type="text" name="name" class="name input"
              placeholder="thread name" autocomplete="off" spellcheck="false">
       <input type="text" name="users" class="users input small light"
@@ -13,8 +13,9 @@
       <input type="submit" class="submit small light pointer" value="start thread">
     </form>
     {{range .Threads}}
-    <a href="/thread/{{.Id}}" class="item pointer">
-      <time class="time sans light" datetime="{{.Time | isoTime}}"></time>
+    <div href="/thread/{{.Id}}" class="thread pointer"
+         onclick="location.href=this.getAttribute('href');">
+      <time class="sans light" datetime="{{.Time | isoTime}}"></time>
       <div class="name sans truncate">{{.Name}}</div>
       <div class="users sans small light truncate">
         {{range $i, $u := .Users}}{{if $i}}, {{end}}{{$u}}{{end}}
@@ -25,7 +26,7 @@
         <span{{if .Last.Tex}} class="math"{{end}}>{{.Last.Body | safe}}</span>
         {{end}}
       </div>
-    </a>
+    </div>
     {{end}}
   </section>
   <section id="right">

@@ -137,12 +137,12 @@ func lastMessage(threadId int) (*message, error) {
 	return &m, err
 }
 
-func nameToId(names []string) ([]int, error) {
+func usernameToId(usernames []string) ([]int, error) {
 	var ids []int
 	stmt := "SELECT user_id FROM users WHERE username = $1"
-	for _, v := range names {
+	for _, u := range usernames {
 		var id int
-		if err := db.QueryRow(stmt, v).Scan(&id); err != nil {
+		if err := db.QueryRow(stmt, u).Scan(&id); err != nil {
 			return nil, err
 		}
 		ids = append(ids, id)
@@ -158,21 +158,21 @@ func insertMessage(threadId int, m *message) error {
 	return err
 }
 
-func insertThread(threadName string, usernames []string, creatorId int) (threadId int, err error) {
+func insertThread(name string, users []int) (threadId int, err error) {
 	stmt := "INSERT INTO threads (thread_name, time) VALUES ($1, $2) RETURNING thread_id"
-	if err = db.QueryRow(stmt, threadName, time.Now().UTC()).Scan(&threadId); err != nil {
+	if err = db.QueryRow(stmt, name, time.Now().UTC()).Scan(&threadId); err != nil {
 		return
 	}
-	ids, err := nameToId(usernames)
-	if err != nil {
-		return
-	}
-	ids = append(ids, creatorId)
-	stmt = "INSERT INTO user_threads (user_id, thread_id) VALUES ($1, $2)"
-	for _, id := range ids {
-		if _, err = db.Exec(stmt, id, threadId); err != nil {
+	for _, u := range users {
+		if err = insertUserThread(u, threadId); err != nil {
 			return
 		}
 	}
 	return
+}
+
+func insertUserThread(userId, threadId int) error {
+	stmt := "INSERT INTO user_threads (user_id, thread_id) VALUES ($1, $2)"
+	_, err := db.Exec(stmt, userId, threadId)
+	return err
 }

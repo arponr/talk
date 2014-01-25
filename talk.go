@@ -128,9 +128,14 @@ func root(w http.ResponseWriter, r *http.Request, c *context) (err error) {
 }
 
 func newThread(w http.ResponseWriter, r *http.Request, c *context) (err error) {
-	threadName := r.FormValue("name")
+	name := r.FormValue("name")
 	usernames := strings.Split(r.FormValue("users"), " ")
-	threadId, err := insertThread(threadName, usernames, c.user.id)
+	users, err := usernameToId(usernames)
+	if err != nil {
+		return
+	}
+	users = append(users, c.user.id)
+	threadId, err := insertThread(name, users)
 	if err != nil {
 		return
 	}

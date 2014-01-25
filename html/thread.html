@@ -5,7 +5,7 @@
   {{range .Messages}}
   <div class="msg">
     <div class="username light">{{.Username}}:</div>
-    <time class="time light sans" datetime="{{.Time | isoTime}}"></time>
+    <time class="light sans" datetime="{{.Time | isoTime}}"></time>
     <div class="body{{if .Tex}} math{{end}}">
       {{.Body | safe}}
     </div>

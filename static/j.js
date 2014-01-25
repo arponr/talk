@@ -53,6 +53,7 @@ function scroll(el) {
 }
 
 function websocket(url) {
+    if (url[0] == '/') url = location.origin + url;
     return new WebSocket(url.replace(/^http/, "ws").replace("thread", "socket"));
 }
 
@@ -129,11 +130,11 @@ function mainLoad() {
 
     fmtTimes(left, "d<br/>t");
 
-    var items = left.getElementsByClassName("item");
-    for (var i = 1; i < items.length; i++) {
-        var socket = websocket(items[i].href);
-        var lastmsg = items[i].getElementsByClassName("lastmsg")[0];
-        var time = items[i].getElementsByClassName("time")[0];
+    var threads = left.getElementsByClassName("thread");
+    for (var i = 0; i < threads.length; i++) {
+        var socket = websocket(threads[i].getAttribute("href"));
+        var lastmsg = threads[i].getElementsByClassName("lastmsg")[0];
+        var time = threads[i].getElementsByTagName("time")[0];
         socket.onmessage = function(l, t) {
             return function(e) {
                 var m = JSON.parse(e.data);
