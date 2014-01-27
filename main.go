@@ -2,9 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 
 	"code.google.com/p/go.net/websocket"
 	gc "github.com/gorilla/context"
@@ -16,9 +18,25 @@ import (
 var db *sql.DB
 var store sessions.Store
 
+func dburl() string {
+	regex := regexp.MustCompile("(?i)^postgres://(?:([^:@]+):([^@]*)@)?([^@/:]+):(\\d+)/(.*)$")
+	matches := regex.FindStringSubmatch(os.Getenv("DATABASE_URL"))
+	if matches == nil {
+		log.Fatalf("DATABASE_URL variable must look like: "+
+			"postgres://username:password@hostname:port/dbname (not '%v')",
+			os.Getenv("DATABASE_URL"))
+	}
+	sslmode := os.Getenv("PGSSL")
+	if sslmode == "" {
+		sslmode = "disable"
+	}
+	return fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
+		matches[1], matches[2], matches[3], matches[4], matches[5], sslmode)
+}
+
 func main() {
 	var err error
-	db, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	db, err = sql.Open("postgres", dburl())
 	if err != nil {
 		log.Fatal(err)
 	}
