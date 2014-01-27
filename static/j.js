@@ -22,34 +22,31 @@ function printTime(t) {
 }
 
 function fmtTime(time, fmt) {
-    var t = new Date(time.getAttribute("datetime"));
-    time.innerHTML = fmt.replace("d", printDate(t))
-                        .replace("t", printTime(t));
+    var t = new Date(time.attr("datetime"));
+    time.html(fmt.replace("d", printDate(t))
+                 .replace("t", printTime(t)));
 }
 
 function fmtTimes(el, fmt) {
-    var times = el.getElementsByTagName("time");
-    for (var i = 0; i < times.length; i++) {
-        fmtTime(times[i], fmt);
-    }
+    $(el).find("time").each(function() {
+        fmtTime($(this), fmt);
+    });
 }
 
 function create(tag, cl, html, ch) {
-    var el = document.createElement(tag)
-    if (cl) el.className = cl;
-    el.innerHTML = html
-    for (var i = 0; i < ch.length; i++) {
-        el.appendChild(ch[i]);
-    }
+    var el = $(document.createElement(tag));
+    if (cl) el.attr("class", cl);
+    el.html(html);
+    el.append(ch);
     return el
 }
 
 function bottom(el) {
-    return el.scrollHeight - el.offsetHeight;
+    return el[0].scrollHeight - el[0].offsetHeight;
 }
 
 function scroll(el) {
-    el.scrollTop = bottom(el);
+    el.scrollTop(bottom(el));
 }
 
 function websocket(url) {
@@ -60,41 +57,41 @@ function websocket(url) {
 function threadLoad() {
     mainLoad();
 
-    fmtTimes(document.getElementById("right"), "d, t");
+    fmtTimes($("#right"), "d, t");
 
-    var output = document.getElementById("msgs");
+    var output = $("#msgs");
     MathJax.Hub.Register.StartupHook("End", function() { scroll(output); });
 
     var socket = websocket(location.href);
     socket.onmessage = function(e) {
-        m = JSON.parse(e.data);
+        var m = JSON.parse(e.data);
         var username = create("div", "username light", m.Username + ":", []);
-        var time = create("time", "time light sans", "", []);
-        time.setAttribute("datetime", m.Time);
+        var time = create("time", "light sans", "", []);
+        time.attr("datetime", m.Time);
         fmtTime(time, "d, t");
         var body = create("div", "body" + (m.Tex ? " math" : ""), m.Body, []);
         var msg = create("div", "msg", "", [username, time, body]);
-        if (m.Tex) MathJax.Hub.Queue(["Typeset", MathJax.Hub, body]);
-        var atBottom = output.scrollTop == bottom(output)
-        output.appendChild(msg);
+        if (m.Tex) MathJax.Hub.Queue(["Typeset", MathJax.Hub, body[0]]);
+        var atBottom = output.scrollTop() == bottom(output)
+        output.append(msg);
         if (atBottom) scroll(output);
     };
 
-    var markdown = document.getElementById("markdown");
-    var tex = document.getElementById("tex");
-    var input = document.getElementById("input");
-    input.onkeydown = function(e) {
+    var markdown = $("#markdown");
+    var tex = $("#tex");
+    var input = $("#input");
+    input.keydown(function(e) {
         if (e.shiftKey && e.keyCode == 13) {
             var m = {
-                "Body": input.value,
-                "Markdown": markdown.checked,
-                "Tex": tex.checked,
+                "Body": input.val(),
+                "Markdown": markdown.is(":checked"),
+                "Tex": tex.is(":checked"),
             };
-            input.value = "";
+            input.val("");
             socket.send(JSON.stringify(m));
             e.preventDefault();
         }
-    };
+    });
 }
 
 function rootLoad() {
@@ -115,63 +112,71 @@ function mainLoad() {
         }
     });
 
-    var newthread = document.getElementById("newthread");
-    newthread.style.display = "none";
-    document.getElementById("plusicon").onclick = function() {
-        if (newthread.style.display != "none") {
-            newthread.style.display = "none";
+    var newthread = $("#newthread");
+    $("#plusicon").click(function() {
+        if (newthread.is(":visible")) {
+            newthread.hide();
         } else {
-            newthread.style.display = "block";
-            newthread.elements[0].focus();
+            newthread.show();
+            newthread.children(":first").focus();
         }
-    };
+    });
 
-    var left = document.getElementById("left");
+    var left = $("#left");
 
     fmtTimes(left, "d<br/>t");
 
-    var threads = left.getElementsByClassName("thread");
-    for (var i = 0; i < threads.length; i++) {
-        var socket = websocket(threads[i].getAttribute("href"));
-        var lastmsg = threads[i].getElementsByClassName("lastmsg")[0];
-        var time = threads[i].getElementsByTagName("time")[0];
-        socket.onmessage = function(l, t) {
-            return function(e) {
-                var m = JSON.parse(e.data);
-                var d = new Date(m.Time);
-                l.innerHTML =  m.Username + ": ";
-                l.appendChild(create("span", m.Tex ? "math" : "", m.Body, []))
-                t.setAttribute("datetime", m.Time);
-                fmtTime(t, "d<br/>t");
-                if (m.Tex) MathJax.Hub.Queue(["Typeset", MathJax.Hub, l]);
-            };
-        }(lastmsg, time);
-    }
+    var threads = $("#threads");
+    threads.children().each(function() {
+        var thread = $(this)
+        var socket = websocket(thread.attr("href"));
+        var lastmsg = thread.find(".lastmsg").first();
+        var time = thread.find("time").first();
+        socket.onmessage = function(e) {
+            var m = JSON.parse(e.data);
+            var d = new Date(m.Time);
+            lastmsg.html(m.Username + ": ");
+            lastmsg.append(create("span", m.Tex ? "math" : "", m.Body, []))
+            time.attr("datetime", m.Time);
+            fmtTime(time, "d<br/>t");
+            if (m.Tex) MathJax.Hub.Queue(["Typeset", MathJax.Hub, lastmsg[0]]);
+            thread.prependTo(threads).animate();
+        };
+    });
+
+    var logo = $("#logo");
+    var right = $("#right_wrap");
+    logo.click(function() {
+        if (left.css("left") == "0px") {
+            left.animate({left: "-250px"}, 300);
+            right.animate({marginLeft: "0px"}, 300);
+        } else {
+            left.animate({left: "0"}, 300, "swing");
+            right.animate({marginLeft: "250px"}, 300);
+        }
+    });
 }
 
 function loginLoad() {
-    var flag = true;
-    var sw = document.getElementById("switch");
-    var login = document.getElementById("login");
-    var submit = document.getElementById("submit");
-    var again = document.getElementById("again");
-    sw.onclick = function() {
-        if (flag) {
-            sw.value = "already have an account?";
-            login.action = "/register";
-            submit.value = "register";
-            again.style.display = "block";
-            flag = false;
+    var sw = $("#switch");
+    var login = $("#login");
+    var submit = $("#submit");
+    var again = $("#again");
+    sw.click(function() {
+        if (again.is(":visible")) {
+            submit.val("login");
+            login.attr("action", "/login");
+            again.hide();
+            sw.val("need to register?");
         } else {
-            sw.value = "need to register?";
-            login.action = "/login";
-            submit.value = "login";
-            again.style.display = "none";
-            flag = true;
+            submit.val("register");
+            login.attr("action", "/register");
+            again.show();
+            sw.val("already have an account?");
         }
-    };
+    });
 }
 
 var load = {"loginpage": loginLoad, "rootpage": rootLoad, "threadpage": threadLoad};
 
-window.onload = function() { load[document.body.id](); };
+$(document).ready(function() { load[this.body.id](); });

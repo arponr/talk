@@ -77,35 +77,38 @@ func userInThread(threadId, userId int) bool {
 	return db.QueryRow(stmt, threadId, userId).Scan(&g) == nil
 }
 
-func userThreads(userId int) ([]*thread, error) {
+func userThreads(userId, threadId int) (ts []*thread, u *thread, err error) {
 	stmt := "SELECT t.thread_id, t.thread_name, t.time FROM threads t, user_threads ut " +
 		"WHERE ut.user_id = $1 AND t.thread_id = ut.thread_id"
 	rows, err := db.Query(stmt, userId)
 	if err != nil {
-		return nil, err
+		return
 	}
-	var threads []*thread
 	for rows.Next() {
 		var t thread
 		err = rows.Scan(&t.Id, &t.Name, &t.Time)
 		if err != nil {
-			return nil, err
+			return
+		}
+		if t.Id == threadId {
+			u = &t
 		}
 		t.Users, err = threadUsers(t.Id, userId)
 		if err != nil {
-			return nil, err
+			return
 		}
 		t.Last, err = lastMessage(t.Id)
 		if err != nil {
-			return nil, err
+			return
 		}
 		if t.Last != nil {
 			t.Time = t.Last.Time
 		}
-		threads = append(threads, &t)
+		ts = append(ts, &t)
 	}
-	sort.Sort(byTime(threads))
-	return threads, rows.Err()
+	sort.Sort(byTime(ts))
+	err = rows.Err()
+	return
 }
 
 func threadMessages(threadId int) ([]*message, error) {

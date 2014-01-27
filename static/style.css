@@ -49,16 +49,22 @@ input:focus, textarea:focus {
     outline: none;
 }
 
+time {
+    font-size: 11px;
+    float: right;
+    position: relative;
+}
+
 .sans {
-    font-family: "Helvetica", sans-serif;
+    font-family: "ff-dagny-web-pro", "Helvetica", sans-serif;
 }
 
 .small {
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .light {
-    color: #888888;
+    color: #777777;
 }
 
 .noselect {
@@ -86,7 +92,7 @@ input:focus, textarea:focus {
     content: "";
     position: absolute;
     left: -1px;
-    bottom: 1px;
+    bottom: 2px;
     border: 1px solid #cccccc;
     padding: 5px;
 }
@@ -109,7 +115,6 @@ input:focus, textarea:focus {
 .truncate {
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* ------ login ------ */
@@ -143,7 +148,7 @@ input:focus, textarea:focus {
     width: 100%;
     height: 30px;
     border: 1px solid #cccccc;
-    margin: 40px 0 20px;
+    margin: 20px 0;
 }
 
 #login .submit:hover {
@@ -169,46 +174,76 @@ input:focus, textarea:focus {
 
 /* ------ main ------ */
 
-#main_wrapper {
-    width: 760px;
-    max-width: 100%;
-    height: 100%;
-    margin: 0 auto;
-    border-left: 1px solid #cccccc;
-    border-right: 1px solid #cccccc;
+#logo {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ffffff;
+    width: 40px;
+    height: 40px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    padding-top: 9px;
+    text-align: center;
+    z-index: 1;
 }
 
-#main_wrapper time {
-    font-size: 11px;
-    float: right;
-    position: relative;
+#logo img {
+    width: 35px;
+    height: 12px;
+    opacity: .75;
+}
+
+#logo:hover img {
+    opacity: 1;
 }
 
 #left {
-    width: 35%;
+    width: 250px;
     height: 100%;
-    border-right: 1px solid #cccccc;
-    float: left;
+    color: #eeeeee;
+    position: fixed;
+    left: 0;
+}
+
+#logo, #left {
+    background: #444444;
+}
+
+#left .light {
+    color: #bbbbbb;
 }
 
 #right {
-    width: 65%;
+    width: 100%;
     height: 100%;
-    position: relative;
-    float: left;
+    overflow: auto;
 }
 
-#control, #newthread, .thread {
-    border-bottom: 1px solid #cccccc;
+#right_wrap {
+    height: 100%;
+    overflow: auto;
+    padding: 0 15px;
+    margin-left: 250px;
+}
+
+#right_content {
+    width: 450px;
+    height: 100%;
+    margin: 0 auto;
+    position: relative;
+    overflow: auto;
 }
 
 #control {
-    height: 30px;
-    padding: 5px;
+    height: 50px;
+    padding: 15px 5px 0 0;
 }
 
 #newthread, .thread {
-    padding: 15px;
+    padding: 17px 15px;
+    height: 80px;
+    line-height: .95em;
 }
 
 .thread {
@@ -216,20 +251,19 @@ input:focus, textarea:focus {
 }
 
 .thread:hover {
-    background: #f6f6f6;
+    background: #505050;
 }
 
 .thread time {
-    top: 3px;
     width: 60px;
     text-align: right;
 }
 
 .thread .users {
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
 
-.thread .lastmsg * {
+.thread .lastmsg p, .thread .lastmsg li {
     display: inline;
 }
 
@@ -250,14 +284,13 @@ input:focus, textarea:focus {
 }
 
 #newthread .submit:hover {
-    color: #333333;
-    border-bottom: 1px solid #999999;
+    color: #eeeeee;
+    border-bottom: 1px solid #cccccc;
 }
 
 .icon {
-    height: 20px;
-    padding: 5px;
-    margin-right: 5px;
+    height: 30px;
+    padding: 10px;
     float: right;
 }
 
@@ -309,12 +342,12 @@ input:focus, textarea:focus {
 
 .lines, .lines:before, .lines:after,
 .plus:before, .plus:after {
-    background: #aaaaaa;
+    background: rgba(255, 255, 255, .75);
 }
 
 .icon:hover .lines, .icon:hover .lines:before, .icon:hover .lines:after,
 .icon:hover .plus:before, .icon:hover .plus:after {
-    background: #333333;
+    background: rgba(255, 255, 255, 1);
 }
 
 /* ------ root ------ */
@@ -332,9 +365,20 @@ input:focus, textarea:focus {
 
 /* ------ thread ------ */
 
+#thread_head {
+    height: 53px;
+    padding: 13px 0 0px;
+    border-bottom: 1px solid #cccccc;
+    margin-bottom: 12px;
+}
+
+#thread_head .name {
+    font-size: 20px;
+    margin-bottom: -4px;
+}
+
 #msgs {
-    height: 100%;
-    padding: 15px 15px 115px;
+    height: calc(100% - 185px);
     overflow: auto;
 }
 
@@ -343,11 +387,13 @@ input:focus, textarea:focus {
 }
 
 .msg .username {
+    font-family: "ff-dagny-web-pro";
+    font-size: 13px;
     float: left;
 }
 
 .msg time {
-    top: 2px;
+    top: 1px;
 }
 
 .msg .body {
@@ -395,12 +441,14 @@ input:focus, textarea:focus {
     left: 0;
     right: 0;
     background: #ffffff;
+    border-left: 1px solid #cccccc;
+    border-right: 1px solid #cccccc;
 }
 
 #threadpage #right #input {
     height: 80px;
     bottom: 30px;
-    padding: 15px;
+    padding: 10px;
     border-top: 1px solid #cccccc;
 }
 
@@ -430,7 +478,7 @@ input:focus, textarea:focus {
 
 #threadpage #right .check {
     position: relative;
-    margin: 9px 15px 0 0;
+    margin: 8px 15px 0 0;
     float: right;
 }
 

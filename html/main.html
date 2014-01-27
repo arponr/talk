@@ -1,17 +1,21 @@
 {{define "content"}}
-<div id="main_wrapper">
-  <section id="left">
-    <nav id="control">
-      <div id="linesicon" class="icon pointer"><div class="lines"></div></div>
-      <div id="plusicon" class="icon pointer"><div class="plus"></div></div>
-    </nav>
-    <form id="newthread" class="sans hide" action="/newthread" method="POST">
-      <input type="text" name="name" class="name input"
-             placeholder="thread name" autocomplete="off" spellcheck="false">
-      <input type="text" name="users" class="users input small light"
-             placeholder="invite people" autocomplete="off" spellcheck="false">
-      <input type="submit" class="submit small light pointer" value="start thread">
-    </form>
+<div id="logo" class="pointer noselect">
+  <img src="/static/arrow.png">
+</div>
+
+<section id="left">
+  <nav id="control">
+    <div id="linesicon" class="icon pointer noselect"><div class="lines"></div></div>
+    <div id="plusicon" class="icon pointer noselect"><div class="plus"></div></div>
+  </nav>
+  <form id="newthread" class="sans hide" action="/newthread" method="POST">
+    <input type="text" name="name" class="name input"
+           placeholder="thread name" autocomplete="off" spellcheck="false">
+    <input type="text" name="users" class="users input small light"
+           placeholder="invite people" autocomplete="off" spellcheck="false">
+    <input type="submit" class="submit small light pointer" value="start thread">
+  </form>
+  <div id="threads">
     {{range .Threads}}
     <div href="/thread/{{.Id}}" class="thread pointer"
          onclick="location.href=this.getAttribute('href');">
@@ -28,9 +32,14 @@
       </div>
     </div>
     {{end}}
-  </section>
-  <section id="right">
-    {{template "right" .}}
-  </section>
-</div>
+  </div>
+</section>
+
+<section id="right">
+  <div id="right_wrap">
+    <div id="right_content">
+      {{template "right" .}}
+    </div>
+  </div>
+</section>
 {{end}}

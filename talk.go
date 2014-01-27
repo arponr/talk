@@ -104,8 +104,9 @@ func readThread(w http.ResponseWriter, r *http.Request, c *context) (err error) 
 	var data struct {
 		Threads  []*thread
 		Messages []*message
+		Current  *thread
 	}
-	data.Threads, err = userThreads(c.user.id)
+	data.Threads, data.Current, err = userThreads(c.user.id, threadId)
 	if err != nil {
 		return err
 	}
@@ -120,7 +121,7 @@ func root(w http.ResponseWriter, r *http.Request, c *context) (err error) {
 	var data struct {
 		Threads []*thread
 	}
-	data.Threads, err = userThreads(c.user.id)
+	data.Threads, _, err = userThreads(c.user.id, -1)
 	if err != nil {
 		return err
 	}

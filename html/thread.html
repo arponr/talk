@@ -1,6 +1,12 @@
 {{define "page"}}thread{{end}}
 
 {{define "right"}}
+<header id="thread_head" class="sans">
+  <div class="name">{{.Current.Name}}</div>
+  <div class="users small">
+    {{range $i, $u := .Current.Users}}{{if $i}}, {{end}}{{$u}}{{end}}
+  </div>
+</header>
 <div id="msgs">
   {{range .Messages}}
   <div class="msg">
