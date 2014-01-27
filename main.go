@@ -19,6 +19,7 @@ var db *sql.DB
 var store sessions.Store
 
 func dburl() string {
+	// return os.Getenv("DATABASE_URL")
 	regex := regexp.MustCompile("(?i)^postgres://(?:([^:@]+):([^@]*)@)?([^@/:]+):(\\d+)/(.*)$")
 	matches := regex.FindStringSubmatch(os.Getenv("DATABASE_URL"))
 	if matches == nil {

@@ -130,10 +130,13 @@ func root(w http.ResponseWriter, r *http.Request, c *context) (err error) {
 
 func newThread(w http.ResponseWriter, r *http.Request, c *context) (err error) {
 	name := r.FormValue("name")
-	usernames := strings.Split(r.FormValue("users"), " ")
-	users, err := usernameToId(usernames)
-	if err != nil {
-		return
+	usernames := r.FormValue("users")
+	var users []int
+	if usernames != "" {
+		users, err = usernameToId(strings.Split(usernames, " "))
+		if err != nil {
+			return
+		}
 	}
 	users = append(users, c.user.id)
 	threadId, err := insertThread(name, users)
