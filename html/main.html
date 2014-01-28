@@ -3,11 +3,11 @@
   <img src="/static/arrow.png">
 </div>
 
-<section id="left">
-  <nav id="control">
+<div id="left">
+  <div id="control">
     <div id="linesicon" class="icon pointer noselect"><div class="lines"></div></div>
     <div id="plusicon" class="icon pointer noselect"><div class="plus"></div></div>
-  </nav>
+  </div>
   <form id="newthread" class="sans hide" action="/newthread" method="POST">
     <input type="text" name="name" class="name input"
            placeholder="thread name" autocomplete="off" spellcheck="false">
@@ -26,20 +26,17 @@
       </div>
       <div class="lastmsg light truncate">
         {{if .Last}}
-        {{.Last.Username}}:
-        <span{{if .Last.Tex}} class="math"{{end}}>{{.Last.Body | safe}}</span>
+        {{.Last.Username}}: {{.Last.Body | safe}}
         {{end}}
       </div>
     </div>
     {{end}}
   </div>
-</section>
+</div>
 
-<section id="right">
-  <div id="right_wrap">
-    <div id="right_content">
-      {{template "right" .}}
-    </div>
+<div id="right_wrap">
+  <div id="right">
+    {{template "right" .}}
   </div>
-</section>
+</div>
 {{end}}

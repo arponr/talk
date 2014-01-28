@@ -46,7 +46,7 @@ function bottom(el) {
 }
 
 function scroll(el) {
-    el.scrollTop(bottom(el));
+    return function() { el.scrollTop(bottom(el)); };
 }
 
 function websocket(url) {
@@ -63,22 +63,30 @@ function threadLoad() {
 
     fmtTimes($("#right"), "d, t");
 
-    var output = $("#msgs");
-    MathJax.Hub.Register.StartupHook("End", function() { scroll(output); });
+    var msgs = $("#msgs");
+    MathJax.Hub.Register.StartupHook("End", scroll(msgs));
 
     var socket = websocket(location.href);
     socket.onmessage = function(e) {
         var m = JSON.parse(e.data);
         var username = create("div", "username light", m.Username + ":", []);
+        var body = create("div", "body" + (m.Tex ? " math" : ""), m.Body, []);
+
         var time = create("time", "light sans", "", []);
         time.attr("datetime", m.Time);
         fmtTime(time, "d, t");
-        var body = create("div", "body" + (m.Tex ? " math" : ""), m.Body, []);
+
         var msg = create("div", "msg", "", [username, time, body]);
-        if (m.Tex) mathjax(body);
-        var atBottom = output.scrollTop() == bottom(output)
-        output.append(msg);
-        if (atBottom) scroll(output);
+
+        var atBottom = msgs.scrollTop() == bottom(msgs)
+        if (m.Tex) {
+            mathjax(body);
+            msgs.append(msg);
+            if (atBottom) MathJax.Hub.Queue(scroll(msgs));
+        } else {
+            msgs.append(msg);
+            if (atBottom) scroll(msgs)();
+        }
     };
 
     var markdown = $("#markdown");
@@ -87,51 +95,62 @@ function threadLoad() {
     var send = $("#send");
     var preview = $("#preview");
     var previewContent = $("#preview_content");
+    var down = $("#downicon");
 
-    var onsend = function(e) {
+    var hidePreview = function(atBottom) {
+        previewContent.html("");
+        down.hide(200);
+        previewContent.animate({bottom: "30px"}, 200);
+        var atBottom = msgs.scrollTop() == bottom(msgs);
+        msgs.animate({
+            bottom: "140px",
+            scrollTop: msgs.scrollTop() - 100,
+        }, 100, function() {
+            if (atBottom) scroll(msgs)();
+        });
+    }
+
+    var onsend = function() {
         var m = {
             "Body": input.val(),
             "Markdown": markdown.is(":checked"),
             "Tex": tex.is(":checked"),
         };
         input.val("");
-        var atBottom = output.scrollTop() == bottom(output)
         socket.send(JSON.stringify(m));
         if (previewContent.css("bottom") == "130px") {
-            previewContent.html("");
-            previewContent.animate({bottom: "30px"}, 300);
-            output.animate({bottom: "140px", scrollTop:
-                            atBottom ? bottom(output) : output.scrollTop() - 100}, 300);
+            hidePreview();
         }
     };
 
     input.keydown(function(e) {
         if (e.shiftKey && e.keyCode == 13) {
-            onsend(e);
+            onsend();
             e.preventDefault();
         }
     });
     send.click(onsend);
 
     preview.click(function() {
-        var data = {
+        var m = {
             "body": input.val(),
             "markdown": markdown.is(":checked") ? "md" : "",
             "tex": tex.is(":checked") ? "tex" : "",
         };
-        previewContent.load("/preview", data, function() {
-            if (tex.is(":checked")) {
-                previewContent.addClass("math");
-                mathjax(previewContent);
-            } else {
-                previewContent.removeClass("math");
-            }
+        previewContent.load("/preview", m, function() {
+            if (tex.is(":checked")) mathjax(previewContent);
             if (previewContent.css("bottom") == "30px") {
-                previewContent.animate({bottom: "130px"}, 300);
-                output.animate({bottom: "240px", scrollTop: output.scrollTop() + 100}, 300);
+                down.show(200);
+                previewContent.animate({bottom: "130px"}, 200);
+                msgs.animate({
+                    bottom: "240px",
+                    scrollTop: msgs.scrollTop() + 100
+                }, 300);
             }
         });
     });
+
+    down.click(hidePreview);
 }
 
 function rootLoad() {
@@ -168,18 +187,18 @@ function mainLoad() {
 
     var threads = $("#threads");
     threads.children().each(function() {
-        var thread = $(this)
+        var thread = $(this);
         var socket = websocket(thread.attr("href"));
         var lastmsg = thread.find(".lastmsg").first();
         var time = thread.find("time").first();
         socket.onmessage = function(e) {
             var m = JSON.parse(e.data);
+            lastmsg.html(m.Username + ": " + m.Body);
+
             var d = new Date(m.Time);
-            lastmsg.html(m.Username + ": ");
-            lastmsg.append(create("span", m.Tex ? "math" : "", m.Body, []))
             time.attr("datetime", m.Time);
             fmtTime(time, "d<br/>t");
-            if (m.Tex) mathjax(lastmsg[0]);
+
             thread.prependTo(threads);
         };
     });
@@ -189,10 +208,10 @@ function mainLoad() {
     logo.click(function() {
         if (left.css("left") == "0px") {
             left.animate({left: "-250px"}, 300);
-            right.animate({marginLeft: "0px"}, 300);
+            right.animate({left: "0px"}, 300);
         } else {
-            left.animate({left: "0"}, 300, "swing");
-            right.animate({marginLeft: "250px"}, 300);
+            left.animate({left: "0"}, 300);
+            right.animate({left: "250px"}, 300);
         }
     });
 }
