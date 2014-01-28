@@ -54,6 +54,10 @@ function websocket(url) {
     return new WebSocket(url.replace(/^http/, "ws").replace("thread", "socket"));
 }
 
+function mathjax(el) {
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, el[0]]);
+}
+
 function threadLoad() {
     mainLoad();
 
@@ -71,7 +75,7 @@ function threadLoad() {
         fmtTime(time, "d, t");
         var body = create("div", "body" + (m.Tex ? " math" : ""), m.Body, []);
         var msg = create("div", "msg", "", [username, time, body]);
-        if (m.Tex) MathJax.Hub.Queue(["Typeset", MathJax.Hub, body[0]]);
+        if (m.Tex) mathjax(body);
         var atBottom = output.scrollTop() == bottom(output)
         output.append(msg);
         if (atBottom) scroll(output);
@@ -80,17 +84,53 @@ function threadLoad() {
     var markdown = $("#markdown");
     var tex = $("#tex");
     var input = $("#input");
+    var send = $("#send");
+    var preview = $("#preview");
+    var previewContent = $("#preview_content");
+
+    var onsend = function(e) {
+        var m = {
+            "Body": input.val(),
+            "Markdown": markdown.is(":checked"),
+            "Tex": tex.is(":checked"),
+        };
+        input.val("");
+        var atBottom = output.scrollTop() == bottom(output)
+        socket.send(JSON.stringify(m));
+        if (previewContent.css("bottom") == "130px") {
+            previewContent.html("");
+            previewContent.animate({bottom: "30px"}, 300);
+            output.animate({bottom: "140px", scrollTop:
+                            atBottom ? bottom(output) : output.scrollTop() - 100}, 300);
+        }
+    };
+
     input.keydown(function(e) {
         if (e.shiftKey && e.keyCode == 13) {
-            var m = {
-                "Body": input.val(),
-                "Markdown": markdown.is(":checked"),
-                "Tex": tex.is(":checked"),
-            };
-            input.val("");
-            socket.send(JSON.stringify(m));
+            onsend(e);
             e.preventDefault();
         }
+    });
+    send.click(onsend);
+
+    preview.click(function() {
+        var data = {
+            "body": input.val(),
+            "markdown": markdown.is(":checked") ? "md" : "",
+            "tex": tex.is(":checked") ? "tex" : "",
+        };
+        previewContent.load("/preview", data, function() {
+            if (tex.is(":checked")) {
+                previewContent.addClass("math");
+                mathjax(previewContent);
+            } else {
+                previewContent.removeClass("math");
+            }
+            if (previewContent.css("bottom") == "30px") {
+                previewContent.animate({bottom: "130px"}, 300);
+                output.animate({bottom: "240px", scrollTop: output.scrollTop() + 100}, 300);
+            }
+        });
     });
 }
 
@@ -139,8 +179,8 @@ function mainLoad() {
             lastmsg.append(create("span", m.Tex ? "math" : "", m.Body, []))
             time.attr("datetime", m.Time);
             fmtTime(time, "d<br/>t");
-            if (m.Tex) MathJax.Hub.Queue(["Typeset", MathJax.Hub, lastmsg[0]]);
-            thread.prependTo(threads).animate();
+            if (m.Tex) mathjax(lastmsg[0]);
+            thread.prependTo(threads);
         };
     });
 

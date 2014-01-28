@@ -2,11 +2,11 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	// "fmt"
 	"log"
 	"net/http"
 	"os"
-	"regexp"
+	// "regexp"
 
 	"code.google.com/p/go.net/websocket"
 	gc "github.com/gorilla/context"
@@ -19,20 +19,20 @@ var db *sql.DB
 var store sessions.Store
 
 func dburl() string {
-	// return os.Getenv("DATABASE_URL")
-	regex := regexp.MustCompile("(?i)^postgres://(?:([^:@]+):([^@]*)@)?([^@/:]+):(\\d+)/(.*)$")
-	matches := regex.FindStringSubmatch(os.Getenv("DATABASE_URL"))
-	if matches == nil {
-		log.Fatalf("DATABASE_URL variable must look like: "+
-			"postgres://username:password@hostname:port/dbname (not '%v')",
-			os.Getenv("DATABASE_URL"))
-	}
-	sslmode := os.Getenv("PGSSL")
-	if sslmode == "" {
-		sslmode = "disable"
-	}
-	return fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
-		matches[1], matches[2], matches[3], matches[4], matches[5], sslmode)
+	return os.Getenv("DATABASE_URL")
+	// regex := regexp.MustCompile("(?i)^postgres://(?:([^:@]+):([^@]*)@)?([^@/:]+):(\\d+)/(.*)$")
+	// matches := regex.FindStringSubmatch(os.Getenv("DATABASE_URL"))
+	// if matches == nil {
+	// 	log.Fatalf("DATABASE_URL variable must look like: "+
+	// 		"postgres://username:password@hostname:port/dbname (not '%v')",
+	// 		os.Getenv("DATABASE_URL"))
+	// }
+	// sslmode := os.Getenv("PGSSL")
+	// if sslmode == "" {
+	// 	sslmode = "disable"
+	// }
+	// return fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
+	// 	matches[1], matches[2], matches[3], matches[4], matches[5], sslmode)
 }
 
 func main() {
@@ -51,8 +51,9 @@ func main() {
 	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {})
 	http.HandleFunc("/login", handler(login, false))
 	http.HandleFunc("/register", handler(register, false))
-	http.Handle("/thread/", handler(readThread, true))
-	http.Handle("/newthread", handler(newThread, true))
+	http.HandleFunc("/thread/", handler(readThread, true))
+	http.HandleFunc("/preview", preview)
+	http.HandleFunc("/newthread", handler(newThread, true))
 	http.Handle("/socket/", websocket.Handler(socket))
 	http.Handle("/static/", http.FileServer(http.Dir(".")))
 

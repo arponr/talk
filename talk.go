@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -40,6 +41,13 @@ func initCache() error {
 	return rows.Err()
 }
 
+func formatMessage(body string, md, tex bool) string {
+	if md {
+		return markdown(body, tex)
+	}
+	return template.HTMLEscapeString(body)
+}
+
 func send(threadId int, c *connection) (err error) {
 	src := json.NewDecoder(c)
 	for {
@@ -49,11 +57,7 @@ func send(threadId int, c *connection) (err error) {
 		} else if err != nil {
 			return
 		}
-		if m.Markdown {
-			m.Body = markdown(m.Body, m.Tex)
-		} else {
-			m.Body = template.HTMLEscapeString(m.Body)
-		}
+		m.Body = formatMessage(m.Body, m.Markdown, m.Tex)
 		m.Username = c.user.username
 		if err = insertMessage(threadId, &m); err != nil {
 			return err
@@ -65,6 +69,13 @@ func send(threadId int, c *connection) (err error) {
 			dst.Encode(&m)
 		}
 	}
+}
+
+func preview(w http.ResponseWriter, r *http.Request) {
+	body := r.FormValue("body")
+	md := r.FormValue("markdown") != ""
+	tex := r.FormValue("tex") != ""
+	fmt.Fprintf(w, formatMessage(body, md, tex))
 }
 
 func socket(s *websocket.Conn) {

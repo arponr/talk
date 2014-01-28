@@ -84,34 +84,6 @@ time {
     cursor: pointer;
 }
 
-.check input {
-    visibility: hidden;
-}
-
-.checklabel:before {
-    content: "";
-    position: absolute;
-    left: -1px;
-    bottom: 2px;
-    border: 1px solid #cccccc;
-    padding: 5px;
-}
-
-.check:hover .checklabel:before, .check input:checked + .checklabel:before {
-    border: 1px solid #999999;
-}
-
-.check input:checked + .checklabel:after {
-    content: "\2713";
-    color: #666666;
-    position: absolute;
-    left: 0px;
-}
-
-.check:hover {
-    color: #333333;
-}
-
 .truncate {
     white-space: nowrap;
     overflow: hidden;
@@ -365,11 +337,14 @@ time {
 
 /* ------ thread ------ */
 
+#thread_head, #msgs, #preview_content, #input, #options {
+    width: 100%;
+    position: absolute;
+}
+
 #thread_head {
-    height: 53px;
-    padding: 13px 0 0px;
+    top: 12px;
     border-bottom: 1px solid #cccccc;
-    margin-bottom: 12px;
 }
 
 #thread_head .name {
@@ -378,12 +353,13 @@ time {
 }
 
 #msgs {
-    height: calc(100% - 185px);
+    top: 65px;
+    bottom: 140px;
     overflow: auto;
 }
 
-.msg {
-    margin-bottom: 10px;
+.msg + .msg {
+    margin-top: 10px;
 }
 
 .msg .username {
@@ -401,8 +377,8 @@ time {
     clear: both;
 }
 
-.msg .body p {
-    margin-bottom: 5px;
+.msg .body p + * {
+    margin-top: 5px;
 }
 
 .msg .body a {
@@ -435,48 +411,70 @@ time {
     left: -10px;
 }
 
-#threadpage #right #input, #options {
-    width: 100%;
-    position: absolute;
-    left: 0;
-    right: 0;
-    background: #ffffff;
-    border-left: 1px solid #cccccc;
-    border-right: 1px solid #cccccc;
+#input, #options, #preview_content {
+    border-width: 1px 1px 0 1px;
+    border-style: solid;
+    border-color: #cccccc;
 }
 
-#threadpage #right #input {
-    height: 80px;
+#input, #preview_content {
+    height: 100px;
     bottom: 30px;
     padding: 10px;
-    border-top: 1px solid #cccccc;
 }
 
-#threadpage #right #options {
+#options {
     height: 30px;
     bottom: 0;
-    border-top: 1px solid #cccccc;
 }
 
-#threadpage #right .button {
+.button {
     width: 100px;
     height: 100%;
     border-right: 1px solid #cccccc;
     float: left;
 }
 
-#threadpage #right .button:hover {
+.button:hover {
     color: #333333;
     background: #f6f6f6;
 }
 
-#threadpage #right .button:active {
+.button:active {
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
     -moz-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
     box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
 }
 
-#threadpage #right .check {
+.check input {
+    visibility: hidden;
+}
+
+.checklabel:before {
+    content: "";
+    position: absolute;
+    left: -1px;
+    bottom: 2px;
+    border: 1px solid #cccccc;
+    padding: 5px;
+}
+
+.check:hover .checklabel:before, .check input:checked + .checklabel:before {
+    border: 1px solid #999999;
+}
+
+.check input:checked + .checklabel:after {
+    content: "\2713";
+    color: #666666;
+    position: absolute;
+    left: 0px;
+}
+
+.check:hover {
+    color: #333333;
+}
+
+.check {
     position: relative;
     margin: 8px 15px 0 0;
     float: right;
