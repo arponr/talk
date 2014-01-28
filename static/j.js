@@ -97,16 +97,16 @@ function threadLoad() {
     var previewContent = $("#preview_content");
     var down = $("#downicon");
 
-    var hidePreview = function(atBottom) {
+    var hidePreview = function() {
         previewContent.html("");
         down.hide(200);
-        previewContent.animate({bottom: "30px"}, 200);
+        previewContent.animate({bottom: "30px"}, 100);
         var atBottom = msgs.scrollTop() == bottom(msgs);
         msgs.animate({
             bottom: "140px",
             scrollTop: msgs.scrollTop() - 100,
         }, 100, function() {
-            if (atBottom) scroll(msgs)();
+            if (atBottom) MathJax.Hub.Queue(scroll(msgs));
         });
     }
 
@@ -141,11 +141,11 @@ function threadLoad() {
             if (tex.is(":checked")) mathjax(previewContent);
             if (previewContent.css("bottom") == "30px") {
                 down.show(200);
-                previewContent.animate({bottom: "130px"}, 200);
+                previewContent.animate({bottom: "130px"}, 100);
                 msgs.animate({
                     bottom: "240px",
                     scrollTop: msgs.scrollTop() + 100
-                }, 300);
+                }, 100);
             }
         });
     });
