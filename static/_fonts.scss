@@ -43,39 +43,3 @@ $prefix: '/static/fonts/gyre-termes-';
     font-weight: bold;
     font-style: italic;
 }
-
-/* @function prefix($ext) { */
-/*     @return '/static/MathJax/fonts/HTML-CSS/TeX/' + $ext + */
-/*             '/MathJax_Main-Regular.' + $ext; */
-/* } */
-
-/* @font-face { */
-/*     font-family: 'tex'; */
-/*     src: url(prefix('eot')); */
-/*     src: url(prefix('eot')+'?#iefix') format('embedded-opentype'), */
-/*          url(prefix('woff')) format('woff'), */
-/*          url(prefix('otf')) format('opentype'); */
-/* } */
-
-/* @font-face { */
-/*     font-family: 'tex'; */
-/*     src: url('/static/fonts/lmroman10-regular-webfont.eot'); */
-/*     src: url('/static/fonts/lmroman10-regular-webfont.eot?#iefix') format('embedded-opentype'), */
-/*          url('/static/fonts/lmroman10-regular-webfont.woff') format('woff'), */
-/*          url('/static/fonts/lmroman10-regular-webfont.ttf') format('truetype'), */
-/*          url('/static/fonts/lmroman10-regular-webfont.svg#latin_modern_roman10_regular') format('svg'); */
-/*     font-weight: normal; */
-/*     font-style: normal; */
-
-/* } */
-
-/* @font-face { */
-/*     font-family: 'tex'; */
-/*     src: url('/static/fonts/cmunrm.eot'); */
-/*     src: url('/static/fonts/cmunrm.eot?#iefix') format('embedded-opentype'), */
-/*     url('/static/fonts/cmunrm.woff') format('woff'), */
-/*     url('/static/fonts/cmunrm.ttf') format('truetype'), */
-/*     url('/static/fonts/cmunrm.svg#cmunrm') format('svg'); */
-/*     font-weight: normal; */
-/*     font-style: normal; */
-/* } */
