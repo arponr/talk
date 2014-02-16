@@ -1,0 +1,159 @@
+#logo {
+    width: 40px;
+    height: 40px;
+    z-index: 1;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    padding-top: 9px;
+
+    font-size: 20px;
+    text-align: center;
+
+    background: $dark-background;
+
+    cursor: pointer;
+    @extend .noselect;
+
+    img {
+        width: 35px;
+        height: 12px;
+
+        opacity: .6;
+    }
+
+    &:hover img {
+        opacity: 1;
+    }
+}
+
+#left {
+    width: 260px;
+    height: 100%;
+    position: absolute;
+    left: 0;
+
+    color: $dark-base;
+    background: $dark-background;
+}
+
+#control {
+    height: 60px;
+    padding: 15px 5px 0 0;
+
+    .icon {
+        height: 30px;
+        padding: 10px;
+        float: right;
+
+        cursor: pointer;
+
+        .lines, .lines:before, .lines:after,
+        .plus:before, .plus:after {
+            background: rgba(255, 255, 255, .5);
+        }
+
+        &:hover {
+            .lines, .lines:before, .lines:after,
+            .plus:before, .plus:after {
+                background: rgba(255, 255, 255, 1);
+            }
+        }
+    }
+}
+
+#newthread, .thread {
+    height: 90px;
+    padding: 15px;
+
+    cursor: pointer;
+
+    .name {
+        font-size: $font-big;
+    }
+
+    .users {
+        font-size: $font-small;
+        margin-bottom: 8px;
+    }
+}
+
+#newthread {
+    display: none;
+
+    input[type="text"] {
+        width: 100%;
+    }
+
+    input[type="submit"] {
+        font-size: $font-small;
+
+        color: $dark-light;
+
+        &:hover {
+            color: $dark-base;
+            border-bottom: 1px solid $border-light;
+        }
+    }
+}
+
+.aside {
+    float: right;
+    position: relative;
+    top: 3px;
+
+    font-size: $font-tiny;
+    text-align: right;
+}
+
+.thread {
+    &:hover {
+        background: $dark-highlight;
+    }
+
+    .users, .lastmsg, time {
+        color: $dark-light;
+    }
+
+    .name, .users, .lastmsg {
+        @extend .truncate;
+    }
+
+    time {
+        width: 60px;
+        @extend .aside;
+    }
+
+    .lastmsg {
+        font-size: $font-mini;
+
+        p, li {
+            display: inline;
+        }
+
+        a {
+            border-bottom: 1px solid $border-light;
+
+            &:hover {
+                border-color: $border-dark;
+            }
+        }
+    }
+}
+
+#right_wrap {
+    height: 100%;
+    position: absolute;
+    left: 260px;
+    right: 0;
+    padding: 0 40px;
+}
+
+#right {
+    width: 420px;
+    height: 100%;
+    margin: 0 auto;
+    position: relative;
+}
+
+

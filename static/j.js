@@ -61,26 +61,41 @@ function mathjax(el) {
 function threadLoad() {
     mainLoad();
 
-    fmtTimes($("#right"), "d, t");
-
     var msgs = $("#msgs");
     MathJax.Hub.Register.StartupHook("End", scroll(msgs));
+
+    fmtTimes($("#right"), "d, t");
+
+    var bodySwitch = function() {
+        $(this).parent().find(".body").toggleClass("hide");
+    }
+
+    msgs.find(".raw").click(bodySwitch);
 
     var socket = websocket(location.href);
     socket.onmessage = function(e) {
         var m = JSON.parse(e.data);
         var username = create("div", "username light", m.Username + ":", []);
-        var body = create("div", "body" + (m.Tex ? " math" : ""), m.Body, []);
+        var fmtBody = create("div", "body" + (m.Tex ? " math" : ""), m.FmtBody, []);
 
-        var time = create("time", "light sans", "", []);
+        var time = create("time", "superlight sans", "", []);
         time.attr("datetime", m.Time);
         fmtTime(time, "d, t");
 
-        var msg = create("div", "msg", "", [username, time, body]);
+        var msg = create("div", "msg", "", [username, time, fmtBody]);
+
+        if (m.Markdown || m.Tex) {
+            var rawBody = create("div", "body hide", m.RawBody, []);
+            var rawImg = create("img", "", "", []);
+            rawImg.attr("src", "/static/dark-arrow.png");
+            var raw = create("div", "raw pointer", "", [rawImg]);
+            raw.click(bodySwitch);
+            fmtBody.before(raw, rawBody);
+        }
 
         var atBottom = msgs.scrollTop() == bottom(msgs)
         if (m.Tex) {
-            mathjax(body);
+            mathjax(fmtBody);
             msgs.append(msg);
             if (atBottom) MathJax.Hub.Queue(scroll(msgs));
         } else {
@@ -100,25 +115,25 @@ function threadLoad() {
     var hidePreview = function() {
         previewContent.html("");
         down.hide(200);
-        previewContent.animate({bottom: "30px"}, 100);
+        previewContent.animate({bottom: "30px"}, 150);
         var atBottom = msgs.scrollTop() == bottom(msgs);
         msgs.animate({
             bottom: "140px",
             scrollTop: msgs.scrollTop() - 100,
-        }, 100, function() {
+        }, 150, function() {
             if (atBottom) MathJax.Hub.Queue(scroll(msgs));
         });
     }
 
     var onsend = function() {
         var m = {
-            "Body": input.val(),
+            "RawBody": input.val(),
             "Markdown": markdown.is(":checked"),
             "Tex": tex.is(":checked"),
         };
         input.val("");
         socket.send(JSON.stringify(m));
-        if (previewContent.css("bottom") == "130px") {
+        if (previewContent.css("bottom") == "120px") {
             hidePreview();
         }
     };
@@ -141,11 +156,11 @@ function threadLoad() {
             if (tex.is(":checked")) mathjax(previewContent);
             if (previewContent.css("bottom") == "30px") {
                 down.show(200);
-                previewContent.animate({bottom: "130px"}, 100);
+                previewContent.animate({bottom: "120px"}, 150);
                 msgs.animate({
                     bottom: "240px",
-                    scrollTop: msgs.scrollTop() + 100
-                }, 100);
+                    scrollTop: msgs.scrollTop() + 100,
+                }, 150);
             }
         });
     });
@@ -172,18 +187,18 @@ function mainLoad() {
     });
 
     var newthread = $("#newthread");
-    $("#plusicon").click(function() {
+    $("#addthread").click(function() {
         if (newthread.is(":visible")) {
-            newthread.hide();
+            newthread.slideUp(150);
         } else {
-            newthread.show();
+            newthread.slideDown(150);
             newthread.children(":first").focus();
         }
     });
 
     var left = $("#left");
 
-    fmtTimes(left, "d<br/>t");
+    fmtTimes(left, "d<br>t");
 
     var threads = $("#threads");
     threads.children().each(function() {
@@ -193,11 +208,11 @@ function mainLoad() {
         var time = thread.find("time").first();
         socket.onmessage = function(e) {
             var m = JSON.parse(e.data);
-            lastmsg.html(m.Username + ": " + m.Body);
+            lastmsg.html(m.Username + ": " + m.FmtBody);
 
             var d = new Date(m.Time);
             time.attr("datetime", m.Time);
-            fmtTime(time, "d<br/>t");
+            fmtTime(time, "d<br>t");
 
             thread.prependTo(threads);
         };
@@ -207,11 +222,11 @@ function mainLoad() {
     var right = $("#right_wrap");
     logo.click(function() {
         if (left.css("left") == "0px") {
-            left.animate({left: "-250px"}, 300);
-            right.animate({left: "0px"}, 300);
+            left.animate({left: "-300px"}, 150);
+            right.animate({left: "0px"}, 150);
         } else {
-            left.animate({left: "0"}, 300);
-            right.animate({left: "250px"}, 300);
+            left.animate({left: "0"}, 150);
+            right.animate({left: "300px"}, 150);
         }
     });
 }

@@ -17,7 +17,8 @@ type thread struct {
 
 type message struct {
 	Username string
-	Body     string
+	RawBody  string
+	FmtBody  string
 	Markdown bool
 	Tex      bool
 	Time     time.Time
@@ -43,44 +44,38 @@ func getUser(r *http.Request) (*user, error) {
 	}
 	var username string
 	var passhash []byte
-	stmt := "SELECT username, passhash FROM users WHERE user_id = $1"
-	err := db.QueryRow(stmt, id).Scan(&username, &passhash)
+	q := "SELECT username, passhash FROM users WHERE user_id = $1"
+	err := db.QueryRow(q, id).Scan(&username, &passhash)
 	if err != nil {
 		return nil, err
 	}
 	return &user{id, username, passhash}, nil
 }
 
-func threadUsers(threadId, userId int) ([]string, error) {
-	stmt := "SELECT u.username FROM users u, user_threads ut " +
-		"WHERE ut.thread_id = $1 AND u.user_id = ut.user_id AND u.user_id != $2"
-	rows, err := db.Query(stmt, threadId, userId)
+func threadUsers(threadId, userId int) (users []string, err error) {
+	q := "SELECT u.username FROM users u, user_threads ut" +
+		" WHERE ut.thread_id = $1 AND u.user_id = ut.user_id AND u.user_id != $2"
+	rows, err := db.Query(q, threadId, userId)
 	if err != nil {
-		return nil, err
+		return
 	}
-	var users []string
 	for rows.Next() {
 		var u string
 		err = rows.Scan(&u)
 		if err != nil {
-			return nil, err
+			return
 		}
 		users = append(users, u)
 	}
-	return users, rows.Err()
+	err = rows.Err()
+	return
 }
 
-func userInThread(threadId, userId int) bool {
-	stmt := "SELECT user_id FROM user_threads ut " +
-		"WHERE ut.thread_id = $1 AND ut.user_id = $2"
-	var g int
-	return db.QueryRow(stmt, threadId, userId).Scan(&g) == nil
-}
-
-func userThreads(userId, threadId int) (ts []*thread, u *thread, err error) {
-	stmt := "SELECT t.thread_id, t.thread_name, t.time FROM threads t, user_threads ut " +
-		"WHERE ut.user_id = $1 AND t.thread_id = ut.thread_id"
-	rows, err := db.Query(stmt, userId)
+func userThreads(userId, threadId int) (threads []*thread, cur *thread, err error) {
+	q := "SELECT t.thread_id, t.thread_name, t.time" +
+		" FROM threads t, user_threads ut" +
+		" WHERE ut.user_id = $1 AND t.thread_id = ut.thread_id"
+	rows, err := db.Query(q, userId)
 	if err != nil {
 		return
 	}
@@ -91,7 +86,7 @@ func userThreads(userId, threadId int) (ts []*thread, u *thread, err error) {
 			return
 		}
 		if t.Id == threadId {
-			u = &t
+			cur = &t
 		}
 		t.Users, err = threadUsers(t.Id, userId)
 		if err != nil {
@@ -104,66 +99,73 @@ func userThreads(userId, threadId int) (ts []*thread, u *thread, err error) {
 		if t.Last != nil {
 			t.Time = t.Last.Time
 		}
-		ts = append(ts, &t)
+		threads = append(threads, &t)
 	}
-	sort.Sort(byTime(ts))
+	if err = rows.Err(); err != nil {
+		return
+	}
+	sort.Sort(byTime(threads))
+	return
+}
+
+func threadMessages(threadId int) (msgs []*message, err error) {
+	q := "SELECT username, raw_body, fmt_body, markdown, tex, time" +
+		" FROM messages WHERE thread_id = $1"
+	rows, err := db.Query(q, threadId)
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		var m message
+		err = rows.Scan(&m.Username, &m.RawBody, &m.FmtBody,
+			&m.Markdown, &m.Tex, &m.Time)
+		if err != nil {
+			return
+		}
+		msgs = append(msgs, &m)
+	}
 	err = rows.Err()
 	return
 }
 
-func threadMessages(threadId int) ([]*message, error) {
-	stmt := "SELECT username, body, tex, time FROM messages WHERE thread_id = $1"
-	rows, err := db.Query(stmt, threadId)
-	if err != nil {
-		return nil, err
-	}
-	var msgs []*message
-	for rows.Next() {
-		var m message
-		err = rows.Scan(&m.Username, &m.Body, &m.Tex, &m.Time)
-		if err != nil {
-			return nil, err
-		}
-		msgs = append(msgs, &m)
-	}
-	return msgs, rows.Err()
-}
-
 func lastMessage(threadId int) (*message, error) {
-	stmt := "SELECT username, body, tex, time FROM messages WHERE thread_id = $1 " +
-		"ORDER BY message_id DESC LIMIT 1"
+	q := "SELECT username, raw_body, fmt_body, markdown, tex, time" +
+		" FROM messages WHERE thread_id = $1" +
+		" ORDER BY message_id DESC LIMIT 1"
 	var m message
-	err := db.QueryRow(stmt, threadId).Scan(&m.Username, &m.Body, &m.Tex, &m.Time)
+	err := db.QueryRow(q, threadId).Scan(&m.Username, &m.RawBody, &m.FmtBody,
+		&m.Markdown, &m.Tex, &m.Time)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	return &m, err
 }
 
-func usernameToId(usernames []string) ([]int, error) {
-	var ids []int
-	stmt := "SELECT user_id FROM users WHERE username = $1"
+func usernameToId(usernames []string) (ids []int, err error) {
+	q := "SELECT user_id FROM users WHERE username = $1"
 	for _, u := range usernames {
 		var id int
-		if err := db.QueryRow(stmt, u).Scan(&id); err != nil {
-			return nil, err
+		if err = db.QueryRow(q, u).Scan(&id); err != nil {
+			return
 		}
 		ids = append(ids, id)
 	}
-	return ids, nil
+	return
 }
 
 func insertMessage(threadId int, m *message) error {
-	stmt := "INSERT INTO messages (username, body, tex, time, thread_id) " +
-		"VALUES ($1, $2, $3, $4, $5)"
+	q := "INSERT INTO messages (thread_id, username, raw_body, fmt_body," +
+		" markdown, tex, time) VALUES ($1, $2, $3, $4, $5, $6, $7)"
 	m.Time = time.Now().UTC()
-	_, err := db.Exec(stmt, m.Username, m.Body, m.Tex, m.Time, threadId)
+	_, err := db.Exec(q, threadId, m.Username, m.RawBody, m.FmtBody,
+		m.Markdown, m.Tex, m.Time)
 	return err
 }
 
 func insertThread(name string, users []int) (threadId int, err error) {
-	stmt := "INSERT INTO threads (thread_name, time) VALUES ($1, $2) RETURNING thread_id"
-	if err = db.QueryRow(stmt, name, time.Now().UTC()).Scan(&threadId); err != nil {
+	q := "INSERT INTO threads (thread_name, time) VALUES ($1, $2)" +
+		" RETURNING thread_id"
+	if err = db.QueryRow(q, name, time.Now().UTC()).Scan(&threadId); err != nil {
 		return
 	}
 	for _, u := range users {
@@ -175,7 +177,14 @@ func insertThread(name string, users []int) (threadId int, err error) {
 }
 
 func insertUserThread(userId, threadId int) error {
-	stmt := "INSERT INTO user_threads (user_id, thread_id) VALUES ($1, $2)"
-	_, err := db.Exec(stmt, userId, threadId)
+	q := "INSERT INTO user_threads (user_id, thread_id) VALUES ($1, $2)"
+	_, err := db.Exec(q, userId, threadId)
 	return err
+}
+
+func userInThread(threadId, userId int) bool {
+	q := "SELECT user_id FROM user_threads ut" +
+		" WHERE ut.thread_id = $1 AND ut.user_id = $2"
+	var g int
+	return db.QueryRow(q, threadId, userId).Scan(&g) == nil
 }

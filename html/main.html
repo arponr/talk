@@ -1,32 +1,32 @@
 {{define "content"}}
-<div id="logo" class="pointer noselect">
+<div id="logo">
   <img src="/static/arrow.png">
 </div>
 
 <div id="left">
   <div id="control">
-    <div id="linesicon" class="icon pointer noselect"><div class="lines"></div></div>
-    <div id="plusicon" class="icon pointer noselect"><div class="plus"></div></div>
+    <div id="settings" class="icon pointer noselect"><div class="lines"></div></div>
+    <div id="addthread" class="icon pointer noselect"><div class="plus"></div></div>
   </div>
-  <form id="newthread" class="sans hide" action="/newthread" method="POST">
-    <input type="text" name="name" class="name input"
-           placeholder="thread name" autocomplete="off" spellcheck="false">
-    <input type="text" name="users" class="users input small light"
-           placeholder="invite people" autocomplete="off" spellcheck="false">
-    <input type="submit" class="submit small light pointer" value="start thread">
+  <form id="newthread" action="/newthread" method="POST">
+    <input type="text" name="name" class="name" placeholder="thread name"
+           autocomplete="off" spellcheck="false">
+    <input type="text" name="users" class="users" placeholder="invite people"
+           autocomplete="off" spellcheck="false">
+    <input type="submit" value="start thread">
   </form>
   <div id="threads">
     {{range .Threads}}
-    <div href="/thread/{{.Id}}" class="thread pointer"
+    <div href="/thread/{{.Id}}" class="thread"
          onclick="location.href=this.getAttribute('href');">
-      <time class="sans light" datetime="{{.Time | isoTime}}"></time>
-      <div class="name sans truncate">{{.Name}}</div>
-      <div class="users sans small light truncate">
+      <time datetime="{{.Time | isoTime}}"></time>
+      <div class="name">{{.Name}}</div>
+      <div class="users">
         {{range $i, $u := .Users}}{{if $i}}, {{end}}{{$u}}{{end}}
       </div>
-      <div class="lastmsg light truncate">
+      <div class="lastmsg">
         {{if .Last}}
-        {{.Last.Username}}: {{.Last.Body | safe}}
+        {{.Last.Username}}: {{.Last.FmtBody | safe}}
         {{end}}
       </div>
     </div>

@@ -1,0 +1,210 @@
+#thread_head, #msgs, #preview_content, #input, #options {
+    width: 100%;
+    position: absolute;
+}
+
+#thread_head, #msgs, #preview_content, #input {
+    padding-left: 1px;
+    padding-right: 1px;
+}
+
+#thread_head {
+    top: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid $border-light;
+
+    font-family: $sans;
+    color: $light-light;
+
+    .name {
+        font-size: $font-huge;
+        font-weight: 300;
+    }
+
+    .users {
+        font-size: $font-small;
+    }
+
+    .plus {
+        float: right;
+        width: 8px;
+        height: 8px;
+    }
+}
+
+#msgs {
+    top: 75px;
+    bottom: 140px;
+
+    overflow: auto;
+}
+
+.msg {
+    & + & {
+        margin-top: 10px;
+    }
+
+    .username {
+        font-family: $sans;
+        font-size: $font-small;
+
+        color: $light-light;
+    }
+
+    time {
+        font-family: $sans;
+
+        color: $light-light;
+    }
+
+    .body_switch {
+        cursor: pointer;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .body {
+        clear: both;
+        font-family: $serif;
+
+        &.raw {
+            display: none;
+        }
+
+        p + * {
+            margin-top: 5px;
+        }
+
+        a {
+            border-bottom: 1px solid $border-dark;
+
+            &:hover {
+                border-color: $border-darker;
+            }
+        }
+
+        ul, ol {
+            margin-left: 35px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        ul {
+            list-style: none;
+
+            li {
+                text-indent: -14px;
+
+                &:before {
+                    content: "\2014";
+                    position: relative;
+                    left: -10px;
+                }
+            }
+        }
+    }
+}
+
+#input, #options, #preview_content {
+    border-width: 1px 0 0 0;
+    border-style: solid;
+    border-color: $border-light;
+}
+
+#input, #preview_content {
+    height: 90px;
+    bottom: 30px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#input, #preview_content {
+    font-family: $serif;
+}
+
+#preview_content {
+    overflow: auto;
+}
+
+#downicon {
+    position: absolute;
+    bottom: 150px;
+    left: -30px;
+    padding: 10px;
+
+    cursor: pointer;
+    display: none;
+
+    &:hover .down {
+        border-top-color: $border-dark
+    }
+}
+
+#options {
+    height: 30px;
+    bottom: 0;
+
+    font-family: $sans;
+    font-size: $font-small;
+
+    color: $light-light;
+
+    input[type="button"] {
+        padding: 0 20px;
+        height: 100%;
+        float: left;
+
+        &:hover {
+            color: $light-base;
+            background: $light-highlight;
+        }
+
+        &:active {
+            @include inset-shadow(6px, rgba(0,0,0,0.1));
+        }
+    }
+}
+
+.check {
+    position: relative;
+    margin: 8px 20px 0 0;
+    float: right;
+
+    cursor: pointer;
+
+    input {
+        visibility: hidden;
+    }
+
+    &:hover {
+        color: $light-base;
+    }
+
+    &:hover .checklabel:before, input:checked + .checklabel:before {
+        border-color: $border-dark;
+    }
+
+    input:checked + .checklabel:after {
+        content: "\2713";
+        position: absolute;
+        left: 0;
+    }
+}
+
+.checklabel {
+    @extend .noselect;
+
+    &:before {
+        content: "";
+        position: absolute;
+        left: -1px;
+        bottom: 1px;
+        padding: 5px;
+
+        border: 1px solid $border-light;
+    }
+}

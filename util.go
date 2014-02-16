@@ -10,9 +10,24 @@ import (
 )
 
 var (
-	censor   = regexp.MustCompile(`\$\$[^\$]+\$\$|\$[^\$]+\$`)
-	uncensor = regexp.MustCompile(`\${3,}`)
+	censor    = regexp.MustCompile(`\$\$[^\$]+\$\$|\$[^\$]+\$`)
+	uncensor  = regexp.MustCompile(`\${3,}`)
+	paragraph = regexp.MustCompile(`\n\s*\n`)
 )
+
+func escape(text string) (out string) {
+	html := template.HTMLEscapeString(text)
+	ps := paragraph.Split(html, -1)
+	for i, p := range ps {
+		if p != "" {
+			if i > 0 {
+				out += "\n\n"
+			}
+			out += "<p>" + p + "</p>"
+		}
+	}
+	return
+}
 
 func replace(v [][]byte) func(string) string {
 	i := 0

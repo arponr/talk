@@ -1,39 +1,46 @@
 {{define "page"}}thread{{end}}
 
 {{define "right"}}
-<header id="thread_head" class="sans">
+<header id="thread_head">
   <div class="name">{{.Current.Name}}</div>
-  <div class="users small">
+  <div class="users">
     {{range $i, $u := .Current.Users}}{{if $i}}, {{end}}{{$u}}{{end}}
   </div>
+  <div id="adduser" class="pointer noselect"><div class="plus"></div></div>
 </header>
 
 <div id="msgs">
   {{range .Messages}}
   <div class="msg">
-    <div class="username light">{{.Username}}:</div>
-    <time class="light sans" datetime="{{.Time | isoTime}}"></time>
-    <div class="body{{if .Tex}} math{{end}}">
-      {{.Body | safe}}
+    <time class="aside{{if or .Markdown .Tex}} body_switch{{end}}"
+          datetime="{{.Time | isoTime}}"></time>
+    <span class="username">{{.Username}}</span>
+    {{if or .Markdown .Tex}}
+    <div class="body raw">
+      {{.RawBody | safe}}
+    </div>
+    {{end}}
+    <div class="body fmt{{if .Tex}} math{{end}}">
+      {{.FmtBody | safe}}
     </div>
   </div>
   {{end}}
 </div>
 
 <div id="preview_content"></div>
-<div id="downicon" class="pointer hide"><div class="down"></div></div>
+<div id="downicon"><div class="down"></div></div>
 
-<textarea id="input" class="input"></textarea>
-<div id="options" class="sans small light">
-  <input type="button" id="send" class="button pointer" value="send">
-  <input type="button" id="preview" class="button pointer" value="preview">
-  <label class="check pointer">
+<textarea id="input"></textarea>
+<div id="options">
+  <input type="button" id="send" value="send">
+  <input type="button" id="preview" value="preview">
+  <label class="check">
     <input type="checkbox" id="markdown" checked>
-    <span class="checklabel noselect">markdown</span>
+    <span class="checklabel">markdown</span>
   </label>
-  <label class="check pointer">
+  <label class="check">
     <input type="checkbox" id="tex" checked>
-    <span class="checklabel noselect">TeX</span>
+    <span class="checklabel">TeX</span>
   </label>
 </div>
 {{end}}

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io"
 	"net/http"
 	"strconv"
@@ -41,11 +40,11 @@ func initCache() error {
 	return rows.Err()
 }
 
-func formatMessage(body string, md, tex bool) string {
+func formatMessage(raw string, md, tex bool) string {
 	if md {
-		return markdown(body, tex)
+		return markdown(raw, tex)
 	}
-	return template.HTMLEscapeString(body)
+	return escape(raw)
 }
 
 func send(threadId int, c *connection) (err error) {
@@ -57,7 +56,8 @@ func send(threadId int, c *connection) (err error) {
 		} else if err != nil {
 			return
 		}
-		m.Body = formatMessage(m.Body, m.Markdown, m.Tex)
+		m.FmtBody = formatMessage(m.RawBody, m.Markdown, m.Tex)
+		m.RawBody = escape(m.RawBody)
 		m.Username = c.user.username
 		if err = insertMessage(threadId, &m); err != nil {
 			return err
@@ -72,10 +72,10 @@ func send(threadId int, c *connection) (err error) {
 }
 
 func preview(w http.ResponseWriter, r *http.Request) {
-	body := r.FormValue("body")
+	raw := r.FormValue("raw")
 	md := r.FormValue("markdown") != ""
 	tex := r.FormValue("tex") != ""
-	fmt.Fprintf(w, formatMessage(body, md, tex))
+	fmt.Fprintf(w, formatMessage(raw, md, tex))
 }
 
 func socket(s *websocket.Conn) {
